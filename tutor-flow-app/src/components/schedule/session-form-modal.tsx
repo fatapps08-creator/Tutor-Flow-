@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import type { SessionStatus } from "@/src/types";
+import type { Class, ClassStudent, SessionStatus, SessionType } from "@/src/types";
 import type { Student } from "@/src/types";
 import type { Session } from "@/src/types";
 import {
   durationBetween,
+  getActiveClassStudentCount,
   timeFromMinutes,
   validateSessionForm,
   type SessionFormErrors,
@@ -17,6 +18,8 @@ import { getTranslations } from "@/src/i18n";
 
 type SessionFormModalProps = {
   students: Student[];
+  classes: Class[];
+  classStudents: ClassStudent[];
   session?: Session;
   today: string;
   onClose: () => void;
@@ -29,7 +32,9 @@ const CUSTOM_SUBJECT = "__custom_subject__";
 
 function initialValues(session: Session | undefined, today: string): SessionFormValues {
   return {
+    type: session?.type ?? "individual",
     studentId: session?.studentId ?? "",
+    classId: session?.classId ?? "",
     subject: session?.subject ?? "",
     date: session?.date ?? today,
     startTime: toTimeInputValue(session?.startTime ?? "09:00"),
@@ -42,6 +47,8 @@ function initialValues(session: Session | undefined, today: string): SessionForm
 
 export function SessionFormModal({
   students,
+  classes,
+  classStudents,
   session,
   today,
   onClose,
@@ -85,7 +92,7 @@ export function SessionFormModal({
   const [saving, setSaving] = useState(false);
   const [customSubject, setCustomSubject] = useState(() => {
     const student = students.find((item) => item.id === session?.studentId);
-    return !session || !student?.subjects.includes(session.subject);
+    return session?.type !== "group" && (!session || !student?.subjects.includes(session.subject));
   });
 
   function updateField<K extends keyof SessionFormValues>(field: K, value: SessionFormValues[K]) {
@@ -137,7 +144,7 @@ export function SessionFormModal({
   }
 
   async function save(allowConflict: boolean) {
-    const nextErrors = validateSessionForm(values);
+    const nextErrors = validateSessionForm(values, classes, classStudents);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       setConflict(undefined);
@@ -166,18 +173,39 @@ export function SessionFormModal({
   function fieldError(field: keyof SessionFormValues) {
     const error = errors[field];
     if (!error) return null;
-    const message = error === "invalidTime"
-      ? t.invalidTime
-      : error === "durationRequired"
-        ? t.durationRequired
-        : error === "subjectRequired"
-          ? t.subjectRequired
-          : error === "pastDate"
-            ? t.pastDate
-            : error === "sessionInPast"
-              ? t.sessionInPast
-              : t.sessionRequired;
+    const messages: Record<string, string> = {
+      invalidTime: t.invalidTime,
+      durationRequired: t.durationRequired,
+      subjectRequired: t.subjectRequired,
+      pastDate: t.pastDate,
+      sessionInPast: t.sessionInPast,
+      studentRequired: t.studentRequired,
+      classRequired: t.classRequired,
+      classInactive: t.classMustBeActive,
+      classNoActiveStudents: t.classMustHaveActiveStudents,
+    };
+    const message = messages[error] ?? t.sessionRequired;
     return <span className="field-error" id={`${field}-error`}>{message}</span>;
+  }
+
+  function changeSessionType(type: SessionType) {
+    setValues((current) => ({
+      ...current,
+      type,
+      studentId: type === "individual" ? current.studentId : "",
+      classId: type === "group" ? current.classId : "",
+      subject: type === "individual" && current.type === "group" ? "" : current.subject,
+    }));
+    setErrors((current) => ({
+      ...current,
+      type: undefined,
+      studentId: undefined,
+      classId: undefined,
+      subject: undefined,
+    }));
+    setCustomSubject(type === "individual");
+    setSaveError("");
+    setConflict(undefined);
   }
 
   function chooseStudent(studentId: string) {
@@ -199,9 +227,16 @@ export function SessionFormModal({
 
   const selectedStudent = students.find((student) => student.id === values.studentId);
   const studentSubjects = selectedStudent?.subjects ?? [];
+  const activeClasses = classes.filter((classRecord) => classRecord.status === "active");
+  const selectedClass = classes.find((classRecord) => classRecord.id === values.classId);
+  const selectedClassStudentCount = selectedClass
+    ? getActiveClassStudentCount(selectedClass.id, classStudents)
+    : 0;
 
   const conflictStudentName = conflict
-    ? students.find((student) => student.id === conflict.studentId)?.fullName ?? t.student
+    ? conflict.type === "individual"
+      ? students.find((student) => student.id === conflict.studentId)?.fullName ?? t.student
+      : classes.find((classRecord) => classRecord.id === conflict.classId)?.className ?? t.groupClass
     : "";
 
   return (
@@ -222,65 +257,113 @@ export function SessionFormModal({
           </button>
         </header>
 
-        {students.length === 0 ? (
-          <div className="session-no-students">
-            <span className="students-empty-icon"><Icon name="users" /></span>
-            <p>{t.noStudentsForSessions}</p>
-            <button className="student-button student-button-secondary" type="button" onClick={onClose}>
-              {t.close}
-            </button>
-          </div>
-        ) : (
-          <form className="student-form session-form" onSubmit={handleSubmit} noValidate>
+        <form className="student-form session-form" onSubmit={handleSubmit} noValidate>
             <div className="session-form-content">
               <div className="student-form-grid">
-                <label className="student-field">
-                  <span>{t.student} <span className="required-mark">*</span></span>
-                  <select
-                    value={values.studentId}
-                    onChange={(event) => chooseStudent(event.target.value)}
-                    aria-invalid={Boolean(errors.studentId)}
-                    aria-describedby={errors.studentId ? "studentId-error" : undefined}
-                  >
-                    <option value="">{t.chooseStudent}</option>
-                    {students.map((student) => (
-                      <option value={student.id} key={student.id}>{student.fullName}</option>
-                    ))}
-                  </select>
-                  {fieldError("studentId")}
-                </label>
+                <fieldset className="student-field student-field-wide session-type-field">
+                  <legend>{t.sessionType}</legend>
+                  <div className="session-type-options">
+                    <label className={values.type === "individual" ? "is-selected" : ""}>
+                      <input
+                        type="radio"
+                        name="sessionType"
+                        value="individual"
+                        checked={values.type === "individual"}
+                        onChange={() => changeSessionType("individual")}
+                      />
+                      <span>{t.individual}</span>
+                    </label>
+                    <label className={values.type === "group" ? "is-selected" : ""}>
+                      <input
+                        type="radio"
+                        name="sessionType"
+                        value="group"
+                        checked={values.type === "group"}
+                        onChange={() => changeSessionType("group")}
+                      />
+                      <span>{t.groupClass}</span>
+                    </label>
+                  </div>
+                </fieldset>
 
-                <label className="student-field">
-                  <span>{t.sessionSubject} <span className="required-mark">*</span></span>
-                  <select
-                    value={customSubject ? CUSTOM_SUBJECT : values.subject}
-                    onChange={(event) => {
-                      const subject = event.target.value;
-                      const isCustom = subject === CUSTOM_SUBJECT;
-                      setCustomSubject(isCustom);
-                      updateField("subject", isCustom ? "" : subject);
-                    }}
-                    aria-invalid={Boolean(errors.subject)}
-                    aria-describedby={errors.subject ? "subject-error" : undefined}
-                  >
-                    <option value="">{t.sessionSubject}</option>
-                    {studentSubjects.map((subject) => (
-                      <option key={subject} value={subject}>{subject}</option>
-                    ))}
-                    <option value={CUSTOM_SUBJECT}>{t.otherSubject}</option>
-                  </select>
-                  {customSubject && (
-                    <input
-                      autoComplete="off"
-                      value={values.subject}
-                      placeholder={t.subjectRequired}
-                      onChange={(event) => updateField("subject", event.target.value)}
-                      aria-invalid={Boolean(errors.subject)}
-                      aria-describedby={errors.subject ? "subject-error" : undefined}
-                    />
-                  )}
-                  {fieldError("subject")}
-                </label>
+                {values.type === "individual" ? (
+                  <>
+                    <label className="student-field">
+                      <span>{t.student} <span className="required-mark">*</span></span>
+                      <select
+                        value={values.studentId}
+                        onChange={(event) => chooseStudent(event.target.value)}
+                        aria-invalid={Boolean(errors.studentId)}
+                        aria-describedby={errors.studentId ? "studentId-error" : undefined}
+                      >
+                        <option value="">{t.chooseStudent}</option>
+                        {students.map((student) => (
+                          <option value={student.id} key={student.id}>{student.fullName}</option>
+                        ))}
+                      </select>
+                      {fieldError("studentId")}
+                      {students.length === 0 && <span className="field-hint">{t.noStudentsForSessions}</span>}
+                    </label>
+
+                    <label className="student-field">
+                      <span>{t.sessionSubject} <span className="required-mark">*</span></span>
+                      <select
+                        value={customSubject ? CUSTOM_SUBJECT : values.subject}
+                        onChange={(event) => {
+                          const subject = event.target.value;
+                          const isCustom = subject === CUSTOM_SUBJECT;
+                          setCustomSubject(isCustom);
+                          updateField("subject", isCustom ? "" : subject);
+                        }}
+                        aria-invalid={Boolean(errors.subject)}
+                        aria-describedby={errors.subject ? "subject-error" : undefined}
+                      >
+                        <option value="">{t.sessionSubject}</option>
+                        {studentSubjects.map((subject) => (
+                          <option key={subject} value={subject}>{subject}</option>
+                        ))}
+                        <option value={CUSTOM_SUBJECT}>{t.otherSubject}</option>
+                      </select>
+                      {customSubject && (
+                        <input
+                          autoComplete="off"
+                          value={values.subject}
+                          placeholder={t.subjectRequired}
+                          onChange={(event) => updateField("subject", event.target.value)}
+                          aria-invalid={Boolean(errors.subject)}
+                          aria-describedby={errors.subject ? "subject-error" : undefined}
+                        />
+                      )}
+                      {fieldError("subject")}
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label className="student-field">
+                      <span>{t.class} <span className="required-mark">*</span></span>
+                      <select
+                        value={values.classId}
+                        onChange={(event) => updateField("classId", event.target.value)}
+                        aria-invalid={Boolean(errors.classId)}
+                        aria-describedby={errors.classId ? "classId-error" : undefined}
+                      >
+                        <option value="">{t.selectClass}</option>
+                        {activeClasses.map((classRecord) => (
+                          <option value={classRecord.id} key={classRecord.id}>{classRecord.className}</option>
+                        ))}
+                      </select>
+                      {fieldError("classId")}
+                      {activeClasses.length === 0 && <span className="field-hint">{t.noActiveClasses}</span>}
+                    </label>
+                    <div className="student-field group-session-summary">
+                      <span>{t.sessionSubject}</span>
+                      <div className="group-session-subject">{selectedClass?.subject ?? "—"}</div>
+                      <span className="field-hint">
+                        {t.activeStudents}: {selectedClass ? selectedClassStudentCount : "—"}
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 <label className="student-field">
                   <span>{t.sessionDate} <span className="required-mark">*</span></span>
@@ -403,7 +486,6 @@ export function SessionFormModal({
               </button>
             </footer>
           </form>
-        )}
       </section>
     </div>
   );

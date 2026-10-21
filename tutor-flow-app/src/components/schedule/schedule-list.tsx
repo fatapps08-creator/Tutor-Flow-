@@ -1,6 +1,6 @@
 "use client";
 
-import type { Session, SessionStatus, Student } from "@/src/types";
+import type { Class, Session, SessionStatus, Student } from "@/src/types";
 import { Icon } from "@/src/components/ui/icon";
 import { getTranslations } from "@/src/i18n";
 import { SessionCard } from "@/src/components/schedule/session-card";
@@ -8,6 +8,8 @@ import { SessionCard } from "@/src/components/schedule/session-card";
 type ScheduleListProps = {
   sessions: Session[];
   studentsById: Map<string, Student>;
+  classesById: Map<string, Class>;
+  activeStudentCountsByClass: Map<string, number>;
   onCreate: () => void;
   onEdit: (session: Session) => void;
   onStatusChange: (session: Session, status: SessionStatus) => void;
@@ -18,6 +20,8 @@ type ScheduleListProps = {
 export function ScheduleList({
   sessions,
   studentsById,
+  classesById,
+  activeStudentCountsByClass,
   onCreate,
   onEdit,
   onStatusChange,
@@ -45,7 +49,21 @@ export function ScheduleList({
         <SessionCard
           key={session.id}
           session={session}
-          student={studentsById.get(session.studentId)}
+          student={
+            session.type === "individual" && session.studentId
+              ? studentsById.get(session.studentId)
+              : undefined
+          }
+          classRecord={
+            session.type === "group" && session.classId
+              ? classesById.get(session.classId)
+              : undefined
+          }
+          activeStudentCount={
+            session.type === "group" && session.classId
+              ? activeStudentCountsByClass.get(session.classId)
+              : undefined
+          }
           onEdit={onEdit}
           onStatusChange={onStatusChange}
         />

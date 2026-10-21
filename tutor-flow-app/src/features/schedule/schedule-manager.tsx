@@ -19,6 +19,7 @@ import type { SessionFormValues } from "@/src/features/schedule/session-form";
 import { toSessionSubmission } from "@/src/features/schedule/session-form";
 import { useSessions } from "@/src/features/schedule/use-sessions";
 import { useCurrentMinute, useTodayDate } from "@/src/features/schedule/use-today";
+import { useClasses } from "@/src/features/classes/use-classes";
 
 type ScheduleView = "today" | "upcoming" | "week";
 
@@ -46,6 +47,19 @@ function sortSessions(items: Session[]) {
   ));
 }
 
+function sessionDisplayName(
+  session: Session,
+  studentsById: Map<string, Student>,
+  classesById: Map<string, { className: string }>,
+  fallbackStudent: string,
+  fallbackGroup: string,
+) {
+  if (session.type === "individual") {
+    return session.studentId ? studentsById.get(session.studentId)?.fullName ?? fallbackStudent : fallbackStudent;
+  }
+  return session.classId ? classesById.get(session.classId)?.className ?? fallbackGroup : fallbackGroup;
+}
+
 function formatDate(date: Date, options: Intl.DateTimeFormatOptions = {}) {
   return new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -58,6 +72,7 @@ function formatDate(date: Date, options: Intl.DateTimeFormatOptions = {}) {
 export function ScheduleManager() {
   const t = getTranslations();
   const sessions = useSessions();
+  const classData = useClasses();
   const todayKey = useTodayDate();
   const currentMinute = useCurrentMinute();
   const [year, month, day] = todayKey.split("-").map(Number);
@@ -78,6 +93,19 @@ export function ScheduleManager() {
     () => new Map(students.map((student) => [student.id, student])),
     [students],
   );
+  const classesById = useMemo(
+    () => new Map(classData.classes.map((classRecord) => [classRecord.id, classRecord])),
+    [classData.classes],
+  );
+  const activeStudentCountsByClass = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const membership of classData.classStudents) {
+      if (membership.status === "active") {
+        counts.set(membership.classId, (counts.get(membership.classId) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [classData.classStudents]);
   const sorted = useMemo(() => sortSessions(sessions), [sessions]);
   const todaysSessions = sorted.filter((session) => session.date === todayKey);
   const upcomingSessions = sorted.filter(
@@ -122,7 +150,7 @@ export function ScheduleManager() {
   }
 
   async function saveSession(values: SessionFormValues, allowConflict: boolean) {
-    const input = toSessionSubmission(values);
+    const input = toSessionSubmission(values, classData.classes, classData.classStudents);
     const existingConflict = findSessionConflict(input, editing?.id);
     if (existingConflict && !allowConflict) {
       setConflict(existingConflict);
@@ -146,7 +174,9 @@ export function ScheduleManager() {
   }
 
   function changeStatus(session: Session, status: SessionStatus) {
-    if (status === "cancelled" && !window.confirm(`${t.cancelSessionConfirmation}\n\n${studentsById.get(session.studentId)?.fullName ?? t.student}`)) {
+    if (status === "cancelled" && !window.confirm(
+      `${t.cancelSessionConfirmation}\n\n${sessionDisplayName(session, studentsById, classesById, t.student, t.groupClass)}`,
+    )) {
       return;
     }
 
@@ -286,8 +316,16 @@ export function ScheduleManager() {
                             onClick={() => openEdit(session)}
                           >
                             <strong>{formatSessionTime(session.startTime)}</strong>
-                            <span>{studentsById.get(session.studentId)?.fullName ?? t.student}</span>
-                            <small>{session.subject}</small>
+                            <span>
+                              {session.type === "group" ? t.groupClass : t.individual}:{" "}
+                              {sessionDisplayName(session, studentsById, classesById, t.student, t.groupClass)}
+                            </span>
+                            <small>{session.type === "group" && session.classId
+                              ? classesById.get(session.classId)?.subject ?? session.subject
+                              : session.subject}</small>
+                            {session.type === "group" && session.classId && (
+                              <small>{activeStudentCountsByClass.get(session.classId) ?? 0} {t.activeStudents.toLowerCase()}</small>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -311,6 +349,8 @@ export function ScheduleManager() {
                 <ScheduleList
                   sessions={view === "today" ? todaysSessions : upcomingSessions}
                   studentsById={studentsById}
+                  classesById={classesById}
+                  activeStudentCountsByClass={activeStudentCountsByClass}
                   onCreate={openCreate}
                   onEdit={openEdit}
                   onStatusChange={changeStatus}
@@ -327,6 +367,8 @@ export function ScheduleManager() {
         <SessionFormModal
           key={editing?.id ?? "new-session"}
           students={students}
+          classes={classData.classes}
+          classStudents={classData.classStudents}
           session={editing}
           today={todayKey}
           conflict={conflict}

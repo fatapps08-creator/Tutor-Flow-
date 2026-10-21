@@ -49,9 +49,16 @@ export function StudentProfileModal({
   const { student, contact } = profile;
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = sessions
-    .filter((session) => session.studentId === student.id && session.date >= today && session.status === "upcoming")
+    .filter((session) => (
+      session.type === "individual"
+      && session.studentId === student.id
+      && session.date >= today
+      && session.status === "upcoming"
+    ))
     .sort((a, b) => a.date.localeCompare(b.date));
-  const records = learningRecords.filter((record) => record.studentId === student.id);
+  const records = learningRecords.filter(
+    (record) => record.targetType === "individual" && record.targetId === student.id,
+  );
   const attendanceRecords = attendance.filter((record) => record.studentId === student.id);
   const paymentRecords = payments.filter((payment) => payment.studentId === student.id);
 

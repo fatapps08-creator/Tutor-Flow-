@@ -121,7 +121,8 @@ export const initialLearningRecords: LearningRecord[] = [
   {
     id: "learning-aina-1",
     tutorId: "tutor-demo",
-    studentId: "student-aina",
+    targetType: "individual",
+    targetId: "student-aina",
     sessionId: "session-aina-previous",
     subject: "Mathematics",
     date: "2026-10-17",
@@ -132,7 +133,8 @@ export const initialLearningRecords: LearningRecord[] = [
   {
     id: "learning-daniel-1",
     tutorId: "tutor-demo",
-    studentId: "student-daniel",
+    targetType: "individual",
+    targetId: "student-daniel",
     sessionId: "session-daniel-previous",
     subject: "English",
     date: "2026-10-16",

@@ -2,6 +2,12 @@
 
 export type Language = 'en' | 'ms';
 
+export type SessionType = 'individual' | 'group';
+export type ClassStatus = 'active' | 'archived';
+export type ClassStudentStatus = 'active' | 'inactive';
+export type LearningTargetType = 'individual' | 'group';
+export type RegistrationType = 'individual' | 'group';
+
 export type SessionStatus = 'upcoming' | 'completed' | 'cancelled' | 'no_show';
 export type StudentStatus = 'active' | 'inactive' | 'paused';
 export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
@@ -20,7 +26,9 @@ export type GoogleSheetTabName =
   | 'Learning Records'
   | 'Attendance'
   | 'Payments'
-  | 'Settings';
+  | 'Settings'
+  | 'Classes'
+  | 'ClassStudents';
 
 export interface Tutor {
   id: string;
@@ -45,14 +53,35 @@ export interface Student {
   notes?: string;
 }
 
+export interface Class {
+  id: string;
+  tutorId: string;
+  className: string;
+  subject: string;
+  description?: string;
+  status: ClassStatus;
+  createdAt: string;
+}
+
+export interface ClassStudent {
+  id: string;
+  tutorId: string;
+  classId: string;
+  studentId: string;
+  joinedDate: string;
+  status: ClassStudentStatus;
+}
+
 export interface Registration {
   id: string;
   tutorId: string;
   studentName: string;
   requestedSubject: string;
-  guardianName: string;
-  guardianPhone: string;
+  guardianName?: string;
+  guardianPhone?: string;
   preferredSchedule?: string;
+  registrationType: RegistrationType;
+  preferredClassId?: string;
   status: RegistrationStatus;
   submittedAt: string;
   notes?: string;
@@ -61,7 +90,9 @@ export interface Registration {
 export interface Session {
   id: string;
   tutorId: string;
-  studentId: string;
+  type: SessionType;
+  studentId?: string;
+  classId?: string;
   subject: string;
   date: string; // YYYY-MM-DD
   startTime: string; // e.g., "9:00 AM"
@@ -74,7 +105,8 @@ export interface Session {
 export interface LearningRecord {
   id: string;
   tutorId: string;
-  studentId: string;
+  targetType: LearningTargetType;
+  targetId: string;
   sessionId: string;
   subject: string;
   date: string; // YYYY-MM-DD

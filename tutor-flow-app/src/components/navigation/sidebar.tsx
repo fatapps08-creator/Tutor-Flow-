@@ -9,6 +9,7 @@ const navigation = [
   { href: "/dashboard", key: "dashboard", icon: "grid" },
   { href: "/schedule", key: "schedule", icon: "calendar" },
   { href: "/students", key: "students", icon: "users" },
+  { href: "/classes", key: "classes", icon: "users" },
   { href: "/learning", key: "learning", icon: "book" },
   { href: "/registration", key: "registration", icon: "clipboard" },
   { href: "/payments", key: "payments", icon: "wallet" },

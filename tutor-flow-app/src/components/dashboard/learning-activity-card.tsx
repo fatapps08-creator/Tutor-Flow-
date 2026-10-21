@@ -13,6 +13,7 @@ const progressLabels: Record<LearningProgress, "excellent" | "good" | "improving
 
 export function LearningActivityCard({ records }: { records: LearningRecord[] }) {
   const t = getTranslations();
+  const individualRecords = records.filter((record) => record.targetType === "individual");
 
   return (
     <section className="content-card activity-card" aria-labelledby="activity-title">
@@ -29,18 +30,18 @@ export function LearningActivityCard({ records }: { records: LearningRecord[] })
           <Icon name="arrowRight" />
         </Link>
       </div>
-      {records.length === 0 ? (
+      {individualRecords.length === 0 ? (
         <div className="card-empty-state">
           <span className="empty-icon"><Icon name="book" /></span>
           <p>{t.noLearningRecords}</p>
         </div>
       ) : (
         <ul className="activity-list">
-          {records.map((record) => (
+          {individualRecords.map((record) => (
             <li className="activity-row" key={record.id}>
               <span className="activity-marker"><Icon name="check" /></span>
               <div className="activity-details">
-                <strong>{demoStudentNames[record.studentId] ?? t.student}</strong>
+                <strong>{demoStudentNames[record.targetId] ?? t.student}</strong>
                 <span>{record.subject} <span className="activity-separator">/</span> {record.topic}</span>
                 <span className={`progress-tag progress-${record.progress}`}>
                   {t[progressLabels[record.progress]]}

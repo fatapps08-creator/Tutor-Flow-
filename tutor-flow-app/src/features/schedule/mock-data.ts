@@ -1,4 +1,5 @@
 import type { Session } from "@/src/types";
+import { initialClasses } from "@/src/features/classes/mock-data";
 
 function dateFromToday(offset: number) {
   const date = new Date();
@@ -11,6 +12,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-aina-1",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-aina",
     subject: "Mathematics",
     date: dateFromToday(0),
@@ -23,6 +25,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-daniel-1",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-daniel",
     subject: "English",
     date: dateFromToday(0),
@@ -34,6 +37,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-adam-1",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-adam",
     subject: "Science",
     date: dateFromToday(0),
@@ -45,6 +49,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-aina-2",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-aina",
     subject: "Science",
     date: dateFromToday(1),
@@ -56,6 +61,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-sofia-1",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-sofia",
     subject: "Piano",
     date: dateFromToday(2),
@@ -67,6 +73,7 @@ export const initialScheduleSessions: Session[] = [
   {
     id: "session-daniel-2",
     tutorId: "tutor-demo",
+    type: "individual",
     studentId: "student-daniel",
     subject: "English",
     date: dateFromToday(4),
@@ -75,5 +82,18 @@ export const initialScheduleSessions: Session[] = [
     durationMinutes: 45,
     status: "upcoming",
     notes: "Writing practice",
+  },
+  {
+    id: "session-mathematics-group-1",
+    tutorId: "tutor-demo",
+    type: "group",
+    classId: initialClasses[0].id,
+    subject: initialClasses[0].subject,
+    date: dateFromToday(1),
+    startTime: "13:00",
+    endTime: "14:00",
+    durationMinutes: 60,
+    status: "upcoming",
+    notes: "Group problem-solving practice",
   },
 ];

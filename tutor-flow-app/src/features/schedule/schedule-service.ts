@@ -35,16 +35,21 @@ export function createSession(input: SessionInput) {
 }
 
 export function updateSession(sessionId: string, input: SessionInput) {
-  const index = sessions.findIndex((session) => session.id === sessionId);
-  if (index === -1) {
+  const existing = sessions.find((session) => session.id === sessionId);
+  if (!existing) {
     throw new Error(`Session ${sessionId} was not found.`);
   }
 
+  const updated: Session = {
+    ...input,
+    id: existing.id,
+    tutorId: existing.tutorId,
+  };
   sessions = sessions.map((session) => (
-    session.id === sessionId ? { ...session, ...input } : session
+    session.id === sessionId ? updated : session
   ));
   notify();
-  return sessions[index];
+  return updated;
 }
 
 export function updateSessionStatus(sessionId: string, status: SessionStatus) {

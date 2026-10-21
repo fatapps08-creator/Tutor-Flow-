@@ -14,6 +14,7 @@ const primaryLinks = [
 
 const moreLinks = [
   { href: "/learning", key: "learning", icon: "book" },
+  { href: "/classes", key: "classes", icon: "users" },
   { href: "/registration", key: "registration", icon: "clipboard" },
   { href: "/payments", key: "payments", icon: "wallet" },
   { href: "/settings", key: "settings", icon: "settings" },

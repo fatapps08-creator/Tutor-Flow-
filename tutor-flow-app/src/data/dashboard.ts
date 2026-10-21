@@ -18,7 +18,8 @@ export const dashboardData: DashboardSummaryData = {
     {
       id: "learning-1",
       tutorId: "tutor-demo",
-      studentId: "student-aina",
+      targetType: "individual",
+      targetId: "student-aina",
       sessionId: "session-1",
       subject: "Mathematics",
       date: "2026-10-20",
@@ -28,7 +29,8 @@ export const dashboardData: DashboardSummaryData = {
     {
       id: "learning-2",
       tutorId: "tutor-demo",
-      studentId: "student-daniel",
+      targetType: "individual",
+      targetId: "student-daniel",
       sessionId: "session-2",
       subject: "English",
       date: "2026-10-19",
@@ -38,7 +40,8 @@ export const dashboardData: DashboardSummaryData = {
     {
       id: "learning-3",
       tutorId: "tutor-demo",
-      studentId: "student-adam",
+      targetType: "individual",
+      targetId: "student-adam",
       sessionId: "session-3",
       subject: "Science",
       date: "2026-10-19",

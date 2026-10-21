@@ -25,26 +25,31 @@ export function ScheduleCard({ sessions }: { sessions: Session[] }) {
         </div>
       ) : (
         <ul className="schedule-list">
-          {sessions.map((session) => (
-            <li className="schedule-row" key={session.id}>
-              <div className="schedule-time">
-                <strong>{session.startTime}</strong>
-                <span>{session.durationMinutes} {t.minutes}</span>
-              </div>
-              <span className="schedule-rail" aria-hidden="true" />
-              <div className="student-avatar" aria-hidden="true">
-                {demoStudentNames[session.studentId]?.slice(0, 1)}
-              </div>
-              <div className="session-details">
-                <strong>                {demoStudentNames[session.studentId] ?? t.student}</strong>
-                <span>{session.subject}</span>
-              </div>
-              <span className={`status-pill status-${session.status}`}>
-                <span className="status-dot" />
-                {session.status === "upcoming" ? t.upcomingStatus : session.status.replace("_", " ")}
-              </span>
-            </li>
-          ))}
+          {sessions.map((session) => {
+            const studentId = session.type === "individual" ? session.studentId : undefined;
+            const studentName = studentId ? demoStudentNames[studentId] : undefined;
+
+            return (
+              <li className="schedule-row" key={session.id}>
+                <div className="schedule-time">
+                  <strong>{session.startTime}</strong>
+                  <span>{session.durationMinutes} {t.minutes}</span>
+                </div>
+                <span className="schedule-rail" aria-hidden="true" />
+                <div className="student-avatar" aria-hidden="true">
+                  {studentName?.slice(0, 1)}
+                </div>
+                <div className="session-details">
+                  <strong>{studentName ?? t.student}</strong>
+                  <span>{session.subject}</span>
+                </div>
+                <span className={`status-pill status-${session.status}`}>
+                  <span className="status-dot" />
+                  {session.status === "upcoming" ? t.upcomingStatus : session.status.replace("_", " ")}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

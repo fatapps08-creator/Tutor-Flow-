@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import type { Session, SessionStatus, Student } from "@/src/types";
+import type { Class, Session, SessionStatus, Student } from "@/src/types";
 import { formatSessionTime } from "@/src/features/schedule/schedule-service";
 import { Icon } from "@/src/components/ui/icon";
 import { getTranslations } from "@/src/i18n";
@@ -9,6 +9,8 @@ import { getTranslations } from "@/src/i18n";
 type SessionCardProps = {
   session: Session;
   student?: Student;
+  classRecord?: Class;
+  activeStudentCount?: number;
   onEdit: (session: Session) => void;
   onStatusChange: (session: Session, status: SessionStatus) => void;
 };
@@ -24,9 +26,18 @@ function StatusLabel({ status }: { status: SessionStatus }) {
   );
 }
 
-export function SessionCard({ session, student, onEdit, onStatusChange }: SessionCardProps) {
+export function SessionCard({
+  session,
+  student,
+  classRecord,
+  activeStudentCount,
+  onEdit,
+  onStatusChange,
+}: SessionCardProps) {
   const t = getTranslations();
   const canUpdateStatus = session.status === "upcoming";
+  const groupSession = session.type === "group";
+  const sessionName = groupSession ? classRecord?.className ?? t.groupClass : student?.fullName ?? t.student;
 
   function closeMenu(event: MouseEvent<HTMLButtonElement>) {
     event.currentTarget.closest("details")?.removeAttribute("open");
@@ -40,17 +51,23 @@ export function SessionCard({ session, student, onEdit, onStatusChange }: Sessio
       </div>
       <span className="schedule-session-divider" aria-hidden="true" />
       <span className="schedule-student-avatar" aria-hidden="true">
-        {student?.fullName.charAt(0).toUpperCase() ?? "?"}
+        {sessionName.charAt(0).toUpperCase() || "?"}
       </span>
       <div className="schedule-session-main">
-        <strong>{student?.fullName ?? t.student}</strong>
-        <span>{session.subject}</span>
+        <small className="schedule-session-type">
+          {groupSession ? t.groupClass : t.individual}
+        </small>
+        <strong>{sessionName}</strong>
+        <span>{groupSession ? classRecord?.subject ?? session.subject : session.subject}</span>
+        {groupSession && activeStudentCount !== undefined && (
+          <span className="schedule-session-member-count">{activeStudentCount} {t.activeStudents.toLowerCase()}</span>
+        )}
         {session.notes && <span className="schedule-session-note">{session.notes}</span>}
       </div>
       <span className="schedule-session-duration">{session.durationMinutes} {t.minutes}</span>
       <StatusLabel status={session.status} />
       <details className="schedule-session-actions">
-        <summary aria-label={`${t.sessionActions}: ${student?.fullName ?? t.student}`}>
+        <summary aria-label={`${t.sessionActions}: ${sessionName}`}>
           <Icon name="more" />
         </summary>
         <div className="schedule-action-menu">

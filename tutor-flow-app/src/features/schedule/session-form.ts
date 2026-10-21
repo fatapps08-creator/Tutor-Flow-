@@ -1,8 +1,10 @@
-import type { Session, SessionStatus } from "@/src/types";
+import type { Class, ClassStudent, Session, SessionStatus, SessionType } from "@/src/types";
 import { timeToMinutes } from "@/src/features/schedule/schedule-service";
 
 export type SessionFormValues = {
+  type: SessionType;
   studentId: string;
+  classId: string;
   subject: string;
   date: string;
   startTime: string;
@@ -15,11 +17,34 @@ export type SessionFormValues = {
 export type SessionFormErrors = Partial<Record<keyof SessionFormValues, string>>;
 export type SessionSubmission = Omit<Session, "id" | "tutorId">;
 
-export function validateSessionForm(values: SessionFormValues): SessionFormErrors {
+export function getActiveClassStudentCount(classId: string, memberships: ClassStudent[]) {
+  return memberships.filter(
+    (membership) => membership.classId === classId && membership.status === "active",
+  ).length;
+}
+
+export function validateSessionForm(
+  values: SessionFormValues,
+  classes: Class[],
+  memberships: ClassStudent[],
+): SessionFormErrors {
   const errors: SessionFormErrors = {};
-  if (!values.studentId) errors.studentId = "sessionRequired";
   if (!values.date) errors.date = "sessionRequired";
-  if (!values.subject.trim()) errors.subject = "subjectRequired";
+  if (values.type === "individual") {
+    if (!values.studentId) errors.studentId = "studentRequired";
+    if (!values.subject.trim()) errors.subject = "subjectRequired";
+  } else {
+    if (!values.classId) {
+      errors.classId = "classRequired";
+    } else {
+      const selectedClass = classes.find((classRecord) => classRecord.id === values.classId);
+      if (!selectedClass || selectedClass.status !== "active") {
+        errors.classId = "classInactive";
+      } else if (getActiveClassStudentCount(values.classId, memberships) === 0) {
+        errors.classId = "classNoActiveStudents";
+      }
+    }
+  }
 
   const start = timeToMinutes(values.startTime);
   const end = timeToMinutes(values.endTime);
@@ -49,16 +74,42 @@ export function validateSessionForm(values: SessionFormValues): SessionFormError
   return errors;
 }
 
-export function toSessionSubmission(values: SessionFormValues): SessionSubmission {
-  return {
-    studentId: values.studentId,
-    subject: values.subject.trim(),
+export function toSessionSubmission(
+  values: SessionFormValues,
+  classes: Class[],
+  memberships: ClassStudent[],
+): SessionSubmission {
+  const sharedFields = {
     date: values.date,
     startTime: values.startTime,
     endTime: values.endTime,
     durationMinutes: Number(values.durationMinutes),
     status: values.status,
     ...(values.notes.trim() && { notes: values.notes.trim() }),
+  };
+
+  if (values.type === "individual") {
+    return {
+      ...sharedFields,
+      type: "individual",
+      studentId: values.studentId,
+      subject: values.subject.trim(),
+    };
+  }
+
+  const selectedClass = classes.find((classRecord) => classRecord.id === values.classId);
+  if (!selectedClass || selectedClass.status !== "active") {
+    throw new Error("A group session requires an active class.");
+  }
+  if (getActiveClassStudentCount(selectedClass.id, memberships) === 0) {
+    throw new Error("A group session requires at least one active class member.");
+  }
+
+  return {
+    ...sharedFields,
+    type: "group",
+    classId: selectedClass.id,
+    subject: selectedClass.subject,
   };
 }
 
