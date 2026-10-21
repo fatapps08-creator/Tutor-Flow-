@@ -20,6 +20,10 @@ import { toSessionSubmission } from "@/src/features/schedule/session-form";
 import { useSessions } from "@/src/features/schedule/use-sessions";
 import { useCurrentMinute, useTodayDate } from "@/src/features/schedule/use-today";
 import { useClasses } from "@/src/features/classes/use-classes";
+import { saveSessionAttendance } from "@/src/features/attendance/attendance-service";
+import { useAttendance } from "@/src/features/attendance/use-attendance";
+import type { AttendanceEntry } from "@/src/features/attendance/attendance-service";
+import { SessionAttendanceModal } from "@/src/components/schedule/session-attendance-modal";
 
 type ScheduleView = "today" | "upcoming" | "week";
 
@@ -73,6 +77,7 @@ export function ScheduleManager() {
   const t = getTranslations();
   const sessions = useSessions();
   const classData = useClasses();
+  const attendance = useAttendance();
   const todayKey = useTodayDate();
   const currentMinute = useCurrentMinute();
   const [year, month, day] = todayKey.split("-").map(Number);
@@ -82,11 +87,16 @@ export function ScheduleManager() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Session>();
+  const [attendanceSession, setAttendanceSession] = useState<Session>();
   const [conflict, setConflict] = useState<Session>();
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string }>();
 
   const students = useMemo<Student[]>(
     () => initialStudents.map(({ student }) => student).filter((student) => student.status !== "inactive"),
+    [],
+  );
+  const allStudents = useMemo<Student[]>(
+    () => initialStudents.map(({ student }) => student),
     [],
   );
   const studentsById = useMemo(
@@ -147,6 +157,22 @@ export function ScheduleManager() {
     setConflict(undefined);
     setFeedback(undefined);
     setModalOpen(true);
+  }
+
+  function openAttendance(session: Session) {
+    setAttendanceSession(session);
+    setFeedback(undefined);
+  }
+
+  function saveAttendance(session: Session, entries: AttendanceEntry[]) {
+    try {
+      saveSessionAttendance(session, entries);
+      setAttendanceSession(undefined);
+      setFeedback({ type: "success", message: t.attendanceSaved });
+    } catch (error) {
+      setFeedback({ type: "error", message: t.attendanceSaveFailed });
+      throw error;
+    }
   }
 
   async function saveSession(values: SessionFormValues, allowConflict: boolean) {
@@ -309,24 +335,32 @@ export function ScheduleManager() {
                     {daySessions.length > 0 ? (
                       <div className="schedule-week-day-sessions">
                         {daySessions.map((session) => (
-                          <button
-                            className={`schedule-week-session status-${session.status}`}
-                            type="button"
-                            key={session.id}
-                            onClick={() => openEdit(session)}
-                          >
-                            <strong>{formatSessionTime(session.startTime)}</strong>
-                            <span>
-                              {session.type === "group" ? t.groupClass : t.individual}:{" "}
-                              {sessionDisplayName(session, studentsById, classesById, t.student, t.groupClass)}
-                            </span>
-                            <small>{session.type === "group" && session.classId
-                              ? classesById.get(session.classId)?.subject ?? session.subject
-                              : session.subject}</small>
-                            {session.type === "group" && session.classId && (
-                              <small>{activeStudentCountsByClass.get(session.classId) ?? 0} {t.activeStudents.toLowerCase()}</small>
-                            )}
-                          </button>
+                          <div className="schedule-week-session-item" key={session.id}>
+                            <button
+                              className={`schedule-week-session status-${session.status}`}
+                              type="button"
+                              onClick={() => openEdit(session)}
+                            >
+                              <strong>{formatSessionTime(session.startTime)}</strong>
+                              <span>
+                                {session.type === "group" ? t.groupClass : t.individual}:{" "}
+                                {sessionDisplayName(session, studentsById, classesById, t.student, t.groupClass)}
+                              </span>
+                              <small>{session.type === "group" && session.classId
+                                ? classesById.get(session.classId)?.subject ?? session.subject
+                                : session.subject}</small>
+                              {session.type === "group" && session.classId && (
+                                <small>{activeStudentCountsByClass.get(session.classId) ?? 0} {t.activeStudents.toLowerCase()}</small>
+                              )}
+                            </button>
+                            <button
+                              className="schedule-week-attendance"
+                              type="button"
+                              onClick={() => openAttendance(session)}
+                            >
+                              {t.attendance}
+                            </button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -353,6 +387,7 @@ export function ScheduleManager() {
                   activeStudentCountsByClass={activeStudentCountsByClass}
                   onCreate={openCreate}
                   onEdit={openEdit}
+                  onAttendance={openAttendance}
                   onStatusChange={changeStatus}
                   emptyTitle={view === "today" ? t.noSessionsToday : t.noUpcomingSessionsTitle}
                   emptyDescription={view === "today" ? t.noSessionsTodayDescription : t.noUpcomingSessionsDescription}
@@ -375,6 +410,22 @@ export function ScheduleManager() {
           setConflict={setConflict}
           onClose={closeModal}
           onSave={saveSession}
+        />
+      )}
+      {attendanceSession && (
+        <SessionAttendanceModal
+          key={attendanceSession.id}
+          session={attendanceSession}
+          classRecord={
+            attendanceSession.type === "group" && attendanceSession.classId
+              ? classesById.get(attendanceSession.classId)
+              : undefined
+          }
+          students={allStudents}
+          classStudents={classData.classStudents}
+          attendance={attendance}
+          onClose={() => setAttendanceSession(undefined)}
+          onSave={(entries) => saveAttendance(attendanceSession, entries)}
         />
       )}
     </>

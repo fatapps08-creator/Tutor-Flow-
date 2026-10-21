@@ -12,6 +12,7 @@ type ScheduleListProps = {
   activeStudentCountsByClass: Map<string, number>;
   onCreate: () => void;
   onEdit: (session: Session) => void;
+  onAttendance: (session: Session) => void;
   onStatusChange: (session: Session, status: SessionStatus) => void;
   emptyTitle: string;
   emptyDescription: string;
@@ -24,6 +25,7 @@ export function ScheduleList({
   activeStudentCountsByClass,
   onCreate,
   onEdit,
+  onAttendance,
   onStatusChange,
   emptyTitle,
   emptyDescription,
@@ -65,6 +67,7 @@ export function ScheduleList({
               : undefined
           }
           onEdit={onEdit}
+          onAttendance={onAttendance}
           onStatusChange={onStatusChange}
         />
       ))}

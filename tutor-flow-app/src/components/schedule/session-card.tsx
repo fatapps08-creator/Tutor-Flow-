@@ -12,6 +12,7 @@ type SessionCardProps = {
   classRecord?: Class;
   activeStudentCount?: number;
   onEdit: (session: Session) => void;
+  onAttendance: (session: Session) => void;
   onStatusChange: (session: Session, status: SessionStatus) => void;
 };
 
@@ -32,6 +33,7 @@ export function SessionCard({
   classRecord,
   activeStudentCount,
   onEdit,
+  onAttendance,
   onStatusChange,
 }: SessionCardProps) {
   const t = getTranslations();
@@ -71,6 +73,9 @@ export function SessionCard({
           <Icon name="more" />
         </summary>
         <div className="schedule-action-menu">
+          <button type="button" onClick={(event) => { closeMenu(event); onAttendance(session); }}>
+            {t.attendance}
+          </button>
           <button type="button" onClick={(event) => { closeMenu(event); onEdit(session); }}>{t.edit}</button>
           {canUpdateStatus && (
             <>
