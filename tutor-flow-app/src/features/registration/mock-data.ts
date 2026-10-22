@@ -1,0 +1,41 @@
+import type { Registration } from "@/src/types";
+
+export const initialRegistrations: Registration[] = [
+  {
+    id: "registration-nur-aisyah",
+    tutorId: "tutor-demo",
+    studentName: "Nur Aisyah Hassan",
+    requestedSubject: "Mathematics",
+    guardianName: "Hassan Ismail",
+    guardianPhone: "+60 12-678 9012",
+    preferredSchedule: "Weekday evenings",
+    registrationType: "individual",
+    status: "pending",
+    submittedAt: "2026-10-20T09:30:00.000Z",
+    notes: "Looking for help with fractions and problem solving.",
+  },
+  {
+    id: "registration-ethan-wong",
+    tutorId: "tutor-demo",
+    studentName: "Ethan Wong",
+    requestedSubject: "English",
+    guardianName: "Joanne Wong",
+    guardianPhone: "+60 16-567 8901",
+    preferredSchedule: "Saturday mornings",
+    registrationType: "group",
+    preferredClassId: "class-english-writing",
+    status: "pending",
+    submittedAt: "2026-10-21T04:15:00.000Z",
+  },
+  {
+    id: "registration-farah-aziz",
+    tutorId: "tutor-demo",
+    studentName: "Farah Aziz",
+    requestedSubject: "Science",
+    guardianName: "Azman Aziz",
+    guardianPhone: "+60 17-456 7890",
+    registrationType: "individual",
+    status: "rejected",
+    submittedAt: "2026-10-18T12:00:00.000Z",
+  },
+];

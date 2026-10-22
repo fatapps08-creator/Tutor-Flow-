@@ -1199,6 +1199,393 @@ a:focus-visible {
   }
 }
 
+.payments-page-header {
+  margin-bottom: 24px;
+}
+
+.payments-panel {
+  overflow: hidden;
+}
+
+.payments-panel-header,
+.payments-controls {
+  flex-wrap: wrap;
+}
+
+.payments-search {
+  width: min(250px, 26vw);
+}
+
+.payments-month-filter input {
+  width: 145px;
+  height: 37px;
+  padding: 0 9px;
+  border: 1px solid #e9eaf0;
+  border-radius: 9px;
+  background: #fff;
+  color: #696e83;
+  font: inherit;
+  font-size: 10px;
+}
+
+.payments-month-filter input:focus-visible {
+  border-color: #aaa1eb;
+  outline: 3px solid rgb(137 126 220 / 13%);
+  outline-offset: 0;
+}
+
+.payments-table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.payments-table {
+  width: 100%;
+  min-width: 930px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.payments-table th {
+  height: 43px;
+  padding: 0 12px;
+  background: #fbfbfd;
+  color: #999daf;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.payments-table th:first-child,
+.payments-table td:first-child {
+  padding-left: 21px;
+}
+
+.payments-table th:last-child,
+.payments-table td:last-child {
+  padding-right: 17px;
+}
+
+.payments-table td {
+  height: 65px;
+  padding: 9px 12px;
+  border-top: 1px solid #f1f2f6;
+  color: #62677d;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.payments-table td strong {
+  color: #414359;
+  font-weight: 650;
+}
+
+.payments-table tbody tr:hover {
+  background: #fdfdff;
+}
+
+.payments-reference {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.payment-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.payment-actions button {
+  min-height: 29px;
+  padding: 0 9px;
+  border: 1px solid #e9eaf0;
+  border-radius: 7px;
+  background: #fff;
+  color: #73788d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.payment-actions button:hover {
+  border-color: #d9d4f6;
+  background: #faf9ff;
+  color: #695dc5;
+}
+
+.payments-mobile-list {
+  display: none;
+}
+
+.payments-empty-state {
+  display: flex;
+  min-height: 280px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.payments-empty-icon {
+  display: grid;
+  width: 51px;
+  height: 51px;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  background: #f2f0ff;
+  color: #786dd0;
+}
+
+.payments-empty-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.payments-empty-state h3 {
+  margin: 0;
+  color: #393b52;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.payments-empty-state p {
+  max-width: 350px;
+  margin: 8px 0 17px;
+  color: #9296a8;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.payment-form-modal {
+  width: min(100%, 620px);
+  max-height: calc(100dvh - 48px);
+}
+
+@media (max-width: 900px) {
+  .payments-panel-header {
+    align-items: flex-start;
+  }
+
+  .payments-controls {
+    width: 100%;
+  }
+
+  .payments-search {
+    width: min(100%, 300px);
+  }
+}
+
+@media (max-width: 680px) {
+  .payments-page-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .payments-page-header > button {
+    flex: none;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .payments-page-header > div h1 {
+    font-size: 21px;
+  }
+
+  .payments-panel-header {
+    display: grid;
+    gap: 13px;
+    padding: 13px;
+  }
+
+  .payments-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(115px, 0.7fr);
+    gap: 7px;
+  }
+
+  .payments-search {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+
+  .payments-controls .students-filter select,
+  .payments-month-filter input {
+    width: 100%;
+  }
+
+  .payments-table-wrap {
+    display: none;
+  }
+
+  .payments-mobile-list {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .payments-mobile-card {
+    display: grid;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid #eff0f5;
+    border-radius: 11px;
+    background: #fff;
+  }
+
+  .payments-mobile-heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #414359;
+    font-size: 12px;
+  }
+
+  .payments-mobile-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 12px;
+    margin: 0;
+  }
+
+  .payments-mobile-card dl div {
+    min-width: 0;
+  }
+
+  .payments-mobile-card dt {
+    margin-bottom: 4px;
+    color: #999daf;
+    font-size: 9px;
+  }
+
+  .payments-mobile-card dd {
+    overflow-wrap: anywhere;
+    margin: 0;
+    color: #55596e;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .payments-mobile-card .payment-actions {
+    padding-top: 10px;
+    border-top: 1px solid #f1f2f6;
+  }
+
+  .payments-mobile-card .payment-actions button {
+    min-height: 33px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .payment-form-modal {
+    width: 100%;
+    height: min(93dvh, 900px);
+    max-height: 93dvh;
+    border-radius: 17px 17px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.settings-page-header {
+  margin-bottom: 24px;
+}
+
+.settings-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 19px 22px;
+  border-bottom: 1px solid #eff0f5;
+}
+
+.settings-panel-header h2 {
+  margin: 0;
+  color: #303249;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.settings-panel-header p {
+  margin: 5px 0 0;
+  color: #999daf;
+  font-size: 10px;
+}
+
+.settings-form {
+  padding: 21px 22px 0;
+}
+
+.settings-duration-input {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.settings-duration-input input {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-duration-input > span {
+  color: #9296a8;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.settings-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 22px;
+  padding: 15px 0 19px;
+  border-top: 1px solid #eff0f5;
+}
+
+@media (max-width: 680px) {
+  .settings-page-header {
+    margin-bottom: 17px;
+  }
+
+  .settings-page-header h1 {
+    font-size: 21px;
+  }
+
+  .settings-panel-header {
+    padding: 15px;
+  }
+
+  .settings-form {
+    padding: 16px 15px 0;
+  }
+
+  .settings-form .student-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .settings-form .student-field-wide {
+    grid-column: auto;
+  }
+
+  .settings-form-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: 18px;
+    padding: 12px 0 max(14px, env(safe-area-inset-bottom));
+    background: #fff;
+  }
+
+  .settings-form-footer .student-button {
+    flex: 1;
+    padding: 0 9px;
+  }
+}
+
 @media (max-width: 370px) {
   .main-content {
     padding-right: 13px;
@@ -4392,5 +4779,386 @@ a:focus-visible {
 
     .attendance-modal-footer {
       padding: 11px 15px max(13px, env(safe-area-inset-bottom));
+    }
+  }
+
+  .registration-page-header {
+    margin-bottom: 24px;
+  }
+
+  .registration-panel {
+    overflow: hidden;
+  }
+
+  .registration-panel-header {
+    flex-wrap: wrap;
+  }
+
+  .registration-controls {
+    flex-wrap: wrap;
+  }
+
+  .registration-search {
+    width: min(290px, 34vw);
+  }
+
+  .registration-table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .registration-table {
+    width: 100%;
+    min-width: 990px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .registration-table th {
+    height: 43px;
+    padding: 0 12px;
+    background: #fbfbfd;
+    color: #999daf;
+    font-size: 9px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .registration-table th:first-child,
+  .registration-table td:first-child {
+    padding-left: 21px;
+  }
+
+  .registration-table th:last-child,
+  .registration-table td:last-child {
+    padding-right: 17px;
+  }
+
+  .registration-table td {
+    height: 70px;
+    padding: 9px 12px;
+    border-top: 1px solid #f1f2f6;
+    color: #62677d;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .registration-table tbody tr:hover {
+    background: #fdfdff;
+  }
+
+  .registration-student-name,
+  .registration-subject,
+  .registration-guardian-name,
+  .registration-guardian-phone,
+  .registration-class-name,
+  .registration-linked-student {
+    display: block;
+  }
+
+  .registration-student-name {
+    color: #414359;
+    font-weight: 650;
+  }
+
+  .registration-subject,
+  .registration-guardian-name {
+    color: #55596e;
+    font-weight: 600;
+  }
+
+  .registration-guardian-phone,
+  .registration-class-name,
+  .registration-linked-student {
+    margin-top: 4px;
+    color: #999daf;
+    font-size: 9px;
+  }
+
+  .registration-type,
+  .registration-status {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 23px;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 7px;
+    font-size: 9px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .registration-type-individual {
+    background: #f0efff;
+    color: #695dc5;
+  }
+
+  .registration-type-group {
+    background: #eaf6f2;
+    color: #4b8a71;
+  }
+
+  .registration-status-pending {
+    background: #fff5e8;
+    color: #b7833f;
+  }
+
+  .registration-status-approved {
+    background: #eef8f1;
+    color: #5b9872;
+  }
+
+  .registration-status-rejected {
+    background: #fff0ef;
+    color: #bd6c64;
+  }
+
+  .registration-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .registration-actions button {
+    min-height: 29px;
+    padding: 0 8px;
+    border: 1px solid #e9eaf0;
+    border-radius: 7px;
+    background: #fff;
+    color: #73788d;
+    cursor: pointer;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .registration-actions button:hover {
+    border-color: #d9d4f6;
+    background: #faf9ff;
+    color: #695dc5;
+  }
+
+  .registration-edit-locked {
+    max-width: 210px;
+    color: #9296a8;
+    font-size: 9px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  .registration-actions .registration-action-approve {
+    border-color: #d9eddf;
+    background: #f5fbf6;
+    color: #4f8b65;
+  }
+
+  .registration-actions .registration-action-reject {
+    border-color: #f1dddb;
+    background: #fff9f8;
+    color: #ad6259;
+  }
+
+  .registration-mobile-list {
+    display: none;
+  }
+
+  .registration-empty-state {
+    display: flex;
+    min-height: 280px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    text-align: center;
+  }
+
+  .registration-empty-icon {
+    display: grid;
+    width: 51px;
+    height: 51px;
+    place-items: center;
+    margin-bottom: 14px;
+    border-radius: 16px;
+    background: #f2f0ff;
+    color: #786dd0;
+  }
+
+  .registration-empty-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .registration-empty-state h3 {
+    margin: 0;
+    color: #393b52;
+    font-size: 15px;
+    font-weight: 650;
+  }
+
+  .registration-empty-state p {
+    max-width: 350px;
+    margin: 8px 0 17px;
+    color: #9296a8;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .registration-form-modal {
+    width: min(100%, 620px);
+    max-height: calc(100dvh - 48px);
+  }
+
+  .registration-selected-class {
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid #efeff6;
+    border-radius: 10px;
+    background: #fafaff;
+    color: #777c91;
+    font-size: 10px;
+  }
+
+  .registration-selected-class strong {
+    color: #45485e;
+    font-size: 11px;
+  }
+
+  @media (max-width: 900px) {
+    .registration-panel-header {
+      align-items: flex-start;
+    }
+
+    .registration-controls {
+      width: 100%;
+    }
+
+    .registration-search {
+      width: min(100%, 350px);
+    }
+  }
+
+  @media (max-width: 680px) {
+    .registration-page-header {
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .registration-page-header > button {
+      flex: none;
+      min-height: 38px;
+      padding: 0 10px;
+      font-size: 10px;
+    }
+
+    .registration-page-header > div h1 {
+      font-size: 21px;
+    }
+
+    .registration-panel-header {
+      display: grid;
+      gap: 13px;
+      padding: 13px;
+    }
+
+    .registration-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(125px, 0.7fr);
+      gap: 7px;
+    }
+
+    .registration-search {
+      width: 100%;
+    }
+
+    .registration-controls .students-filter select {
+      width: 100%;
+    }
+
+    .registration-table-wrap {
+      display: none;
+    }
+
+    .registration-mobile-list {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .registration-mobile-card {
+      display: grid;
+      gap: 13px;
+      padding: 13px;
+      border: 1px solid #eff0f5;
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .registration-mobile-heading {
+      display: flex;
+      min-width: 0;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .registration-mobile-heading h3 {
+      overflow-wrap: anywhere;
+      margin: 0;
+      color: #414359;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .registration-mobile-heading > div > span {
+      display: block;
+      margin-top: 4px;
+      color: #999daf;
+      font-size: 9px;
+    }
+
+    .registration-mobile-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 11px 12px;
+      margin: 0;
+    }
+
+    .registration-mobile-details div {
+      min-width: 0;
+    }
+
+    .registration-mobile-details dt {
+      margin-bottom: 4px;
+      color: #999daf;
+      font-size: 9px;
+    }
+
+    .registration-mobile-details dd {
+      overflow-wrap: anywhere;
+      margin: 0;
+      color: #55596e;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .registration-mobile-card .registration-actions {
+      padding-top: 10px;
+      border-top: 1px solid #f1f2f6;
+    }
+
+    .registration-mobile-card .registration-actions button {
+      min-height: 33px;
+      padding: 0 10px;
+      font-size: 10px;
+    }
+
+    .registration-form-modal {
+      width: 100%;
+      height: min(93dvh, 900px);
+      max-height: 93dvh;
+      border-radius: 17px 17px 0 0;
+      padding-bottom: env(safe-area-inset-bottom);
     }
   }

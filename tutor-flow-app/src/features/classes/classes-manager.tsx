@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Class, ClassStatus, ClassStudent, Student } from "@/src/types";
-import { initialStudents } from "@/src/features/students/mock-data";
+import { useStudents } from "@/src/features/students/use-students";
 import { ClassDetailsModal } from "@/src/components/classes/class-details-modal";
 import { ClassFormModal } from "@/src/components/classes/class-form-modal";
 import { Icon } from "@/src/components/ui/icon";
@@ -37,9 +37,10 @@ function classConfirmationMessage(classRecord: Class, action: "archive" | "react
 export function ClassesManager() {
   const t = getTranslations();
   const { classes, classStudents } = useClasses();
+  const studentProfiles = useStudents();
   const students = useMemo<Student[]>(
-    () => initialStudents.map(({ student }) => student),
-    [],
+    () => studentProfiles.map(({ student }) => student),
+    [studentProfiles],
   );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClassStatusFilter>("all");

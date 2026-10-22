@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Session, SessionStatus, Student } from "@/src/types";
-import { initialStudents } from "@/src/features/students/mock-data";
+import { useStudents } from "@/src/features/students/use-students";
 import { SessionFormModal } from "@/src/components/schedule/session-form-modal";
 import { ScheduleList } from "@/src/components/schedule/schedule-list";
 import { Icon } from "@/src/components/ui/icon";
@@ -24,6 +24,7 @@ import { saveSessionAttendance } from "@/src/features/attendance/attendance-serv
 import { useAttendance } from "@/src/features/attendance/use-attendance";
 import type { AttendanceEntry } from "@/src/features/attendance/attendance-service";
 import { SessionAttendanceModal } from "@/src/components/schedule/session-attendance-modal";
+import { useSettings } from "@/src/features/settings/use-settings";
 
 type ScheduleView = "today" | "upcoming" | "week";
 
@@ -78,6 +79,8 @@ export function ScheduleManager() {
   const sessions = useSessions();
   const classData = useClasses();
   const attendance = useAttendance();
+  const settings = useSettings();
+  const studentProfiles = useStudents();
   const todayKey = useTodayDate();
   const currentMinute = useCurrentMinute();
   const [year, month, day] = todayKey.split("-").map(Number);
@@ -92,12 +95,12 @@ export function ScheduleManager() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string }>();
 
   const students = useMemo<Student[]>(
-    () => initialStudents.map(({ student }) => student).filter((student) => student.status !== "inactive"),
-    [],
+    () => studentProfiles.map(({ student }) => student).filter((student) => student.status !== "inactive"),
+    [studentProfiles],
   );
   const allStudents = useMemo<Student[]>(
-    () => initialStudents.map(({ student }) => student),
-    [],
+    () => studentProfiles.map(({ student }) => student),
+    [studentProfiles],
   );
   const studentsById = useMemo(
     () => new Map(students.map((student) => [student.id, student])),
@@ -406,6 +409,7 @@ export function ScheduleManager() {
           classStudents={classData.classStudents}
           session={editing}
           today={todayKey}
+          defaultSessionDurationMinutes={settings.defaultSessionDurationMinutes}
           conflict={conflict}
           setConflict={setConflict}
           onClose={closeModal}

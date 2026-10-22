@@ -22,6 +22,7 @@ type SessionFormModalProps = {
   classStudents: ClassStudent[];
   session?: Session;
   today: string;
+  defaultSessionDurationMinutes?: number;
   onClose: () => void;
   onSave: (values: SessionFormValues, allowConflict: boolean) => Promise<void>;
   conflict?: Session;
@@ -30,16 +31,24 @@ type SessionFormModalProps = {
 
 const CUSTOM_SUBJECT = "__custom_subject__";
 
-function initialValues(session: Session | undefined, today: string): SessionFormValues {
+function initialValues(
+  session: Session | undefined,
+  today: string,
+  defaultSessionDurationMinutes: number,
+): SessionFormValues {
+  const startTime = session?.startTime ?? "09:00";
+  const durationMinutes = session?.durationMinutes ?? defaultSessionDurationMinutes;
   return {
     type: session?.type ?? "individual",
     studentId: session?.studentId ?? "",
     classId: session?.classId ?? "",
     subject: session?.subject ?? "",
     date: session?.date ?? today,
-    startTime: toTimeInputValue(session?.startTime ?? "09:00"),
-    endTime: toTimeInputValue(session?.endTime ?? "10:00"),
-    durationMinutes: String(session?.durationMinutes ?? 60),
+    startTime: toTimeInputValue(startTime),
+    endTime: toTimeInputValue(
+      session?.endTime ?? timeFromMinutes(timeToMinutes(startTime) + durationMinutes),
+    ),
+    durationMinutes: String(durationMinutes),
     status: session?.status ?? "upcoming",
     notes: session?.notes ?? "",
   };
@@ -51,6 +60,7 @@ export function SessionFormModal({
   classStudents,
   session,
   today,
+  defaultSessionDurationMinutes = 60,
   onClose,
   onSave,
   conflict,
@@ -86,7 +96,9 @@ export function SessionFormModal({
       window.scrollTo(0, scrollY);
     };
   }, []);
-  const [values, setValues] = useState(() => initialValues(session, today));
+  const [values, setValues] = useState(
+    () => initialValues(session, today, defaultSessionDurationMinutes),
+  );
   const [errors, setErrors] = useState<SessionFormErrors>({});
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);

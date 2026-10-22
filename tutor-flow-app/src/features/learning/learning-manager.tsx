@@ -7,7 +7,7 @@ import type {
   LearningRecord,
   Student,
 } from "@/src/types";
-import { initialStudents } from "@/src/features/students/mock-data";
+import { useStudents } from "@/src/features/students/use-students";
 import {
   addLearningRecord,
   deleteLearningRecord,
@@ -47,10 +47,11 @@ function attendanceStatusLabel(status: AttendanceStatus, t: ReturnType<typeof ge
 export function LearningManager() {
   const t = getTranslations();
   const records = useLearningRecords();
+  const studentProfiles = useStudents();
   const sessions = useSessions();
   const { classes } = useClasses();
   const attendance = useAttendance();
-  const students = useMemo<Student[]>(() => initialStudents.map(({ student }) => student), []);
+  const students = useMemo<Student[]>(() => studentProfiles.map(({ student }) => student), [studentProfiles]);
   const studentsById = useMemo(() => new Map(students.map((student) => [student.id, student])), [students]);
   const classesById = useMemo(() => new Map(classes.map((classRecord) => [classRecord.id, classRecord])), [classes]);
   const sessionsById = useMemo(() => new Map(sessions.map((session) => [session.id, session])), [sessions]);

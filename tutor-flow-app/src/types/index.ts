@@ -85,6 +85,7 @@ export interface Registration {
   status: RegistrationStatus;
   submittedAt: string;
   notes?: string;
+  createdStudentId?: string;
 }
 
 export interface Session {

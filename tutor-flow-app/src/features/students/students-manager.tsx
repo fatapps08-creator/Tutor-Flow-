@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { StudentStatus } from "@/src/types";
 import {
+  type StudentProfile,
   initialAttendance,
   initialLearningRecords,
   initialPayments,
   initialSessions,
-  initialStudents,
-  type StudentProfile,
 } from "@/src/features/students/mock-data";
 import {
   toStudentSubmission,
@@ -23,28 +22,32 @@ import {
 } from "@/src/components/students/students-list";
 import { Icon } from "@/src/components/ui/icon";
 import { getTranslations } from "@/src/i18n";
+import {
+  createStudentInSheets,
+  loadStudentsFromApi,
+  updateStudentInSheets,
+  updateStudentStatusInSheets,
+} from "@/src/features/students/student-service";
+import { useStudents, useStudentsLoadState } from "@/src/features/students/use-students";
 
 type StatusFilter = "all" | StudentStatus;
 
 export function StudentsManager() {
   const t = getTranslations();
-  const [students, setStudents] = useState<StudentProfile[]>(initialStudents);
+  const students = useStudents();
+  const loadState = useStudentsLoadState();
   const [sessions] = useState(initialSessions);
   const [learningRecords] = useState(initialLearningRecords);
   const [attendance] = useState(initialAttendance);
   const [payments] = useState(initialPayments);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<StudentProfile>();
   const [viewing, setViewing] = useState<StudentProfile>();
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string }>();
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setLoading(false), 280);
-    return () => window.clearTimeout(timeout);
-  }, []);
+  const loading = loadState.status === "idle" || loadState.status === "loading";
 
   const visibleStudents = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -77,14 +80,10 @@ export function StudentsManager() {
     try {
       const result = toStudentSubmission(values, editing?.student);
       if (editing) {
-        setStudents((current) => current.map((profile) => (
-          profile.student.id === editing.student.id
-            ? { student: result.student, contact: result.contact }
-            : profile
-        )));
+        await updateStudentInSheets(editing.student.id, result);
         setFeedback({ type: "success", message: t.studentSaved });
       } else {
-        setStudents((current) => [{ student: result.student, contact: result.contact }, ...current]);
+        await createStudentInSheets(result);
         setFeedback({ type: "success", message: t.studentAdded });
       }
       closeForm();
@@ -94,30 +93,22 @@ export function StudentsManager() {
     }
   }
 
-  function archiveStudent(profile: StudentProfile) {
+  async function archiveStudent(profile: StudentProfile) {
     if (!window.confirm(`${t.archiveConfirmation}\n\n${profile.student.fullName}`)) return;
 
     try {
-      setStudents((current) => current.map((item) => (
-        item.student.id === profile.student.id
-          ? { ...item, student: { ...item.student, status: "inactive" } }
-          : item
-      )));
+      await updateStudentStatusInSheets(profile.student.id, "inactive");
       setFeedback({ type: "success", message: t.studentArchived });
     } catch {
       setFeedback({ type: "error", message: t.archiveFailed });
     }
   }
 
-  function restoreStudent(profile: StudentProfile) {
+  async function restoreStudent(profile: StudentProfile) {
     if (!window.confirm(`${t.restoreConfirmation}\n\n${profile.student.fullName}`)) return;
 
     try {
-      setStudents((current) => current.map((item) => (
-        item.student.id === profile.student.id
-          ? { ...item, student: { ...item.student, status: "active" } }
-          : item
-      )));
+      await updateStudentStatusInSheets(profile.student.id, "active");
       setFeedback({ type: "success", message: t.studentRestored });
     } catch {
       setFeedback({ type: "error", message: t.archiveFailed });
@@ -170,6 +161,19 @@ export function StudentsManager() {
             <div className="students-loading" role="status">
               <span className="student-loading-spinner" aria-hidden="true" />
               <span>{t.loadingStudents}</span>
+            </div>
+          ) : loadState.status === "error" ? (
+            <div className="students-empty-state" role="alert">
+              <span className="students-empty-icon"><Icon name="users" /></span>
+              <h3>{t.studentsLoadFailed}</h3>
+              <p>{t.studentsLoadFailedDescription}</p>
+              <button
+                className="student-button student-button-secondary"
+                type="button"
+                onClick={() => void loadStudentsFromApi()}
+              >
+                {t.tryAgain}
+              </button>
             </div>
           ) : visibleStudents.length > 0 ? (
             <StudentsList
