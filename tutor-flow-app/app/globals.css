@@ -3593,6 +3593,404 @@ a:focus-visible {
     grid-column: 2;
     grid-row: 3;
   }
+}
+
+.learning-page-header {
+  margin-bottom: 24px;
+}
+
+.learning-panel {
+  overflow: visible;
+}
+
+.learning-panel-header {
+  display: grid;
+  gap: 15px;
+  padding: 17px 20px;
+  border-bottom: 1px solid #eff0f5;
+}
+
+.learning-filter-tabs,
+.learning-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.learning-filter-tabs button {
+  min-height: 33px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #83879a;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.learning-filter-tabs button:hover,
+.learning-filter-tabs button.is-active {
+  border-color: #e9e6fc;
+  background: #f3f1ff;
+  color: #695dc5;
+}
+
+.learning-controls {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(130px, 0.55fr) minmax(160px, 0.7fr);
+}
+
+.learning-search {
+  width: 100%;
+}
+
+.learning-record-list {
+  display: grid;
+  gap: 11px;
+  padding: 17px 20px;
+}
+
+.learning-record-card {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 17px 18px;
+  border: 1px solid #eff0f5;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.learning-record-main {
+  min-width: 0;
+}
+
+.learning-record-overline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.learning-type-badge,
+.learning-progress-badge {
+  display: inline-flex;
+  min-height: 23px;
+  align-items: center;
+  border-radius: 7px;
+  padding: 0 8px;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.learning-type-badge.type-individual {
+  background: #f0efff;
+  color: #695dc5;
+}
+
+.learning-type-badge.type-group {
+  background: #eaf6f2;
+  color: #4b8a71;
+}
+
+.learning-record-subject {
+  color: #797e92;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.learning-record-main h2 {
+  margin: 10px 0 3px;
+  color: #36394f;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.learning-record-date {
+  margin: 0;
+  color: #999daf;
+  font-size: 10px;
+}
+
+.learning-record-main h3 {
+  margin: 13px 0 0;
+  color: #484b60;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.learning-record-remarks {
+  margin: 6px 0 0;
+  color: #85899c;
+  font-size: 10px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.learning-record-side {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 15px;
+}
+
+.learning-progress-badge.progress-excellent {
+  background: #eaf6f0;
+  color: #438367;
+}
+
+.learning-progress-badge.progress-good {
+  background: #edf3ff;
+  color: #5b76b3;
+}
+
+.learning-progress-badge.progress-improving {
+  background: #fff5e5;
+  color: #a87932;
+}
+
+.learning-progress-badge.progress-needs_attention {
+  background: #fff0ee;
+  color: #ad6259;
+}
+
+.learning-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.learning-record-actions button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid #e9eaf0;
+  border-radius: 7px;
+  background: #fff;
+  color: #73788d;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.learning-record-actions button:hover {
+  border-color: #d9d4f6;
+  background: #faf9ff;
+  color: #695dc5;
+}
+
+.learning-record-actions .learning-delete-action:hover {
+  border-color: #f0d8d5;
+  background: #fff7f6;
+  color: #ad6259;
+}
+
+.learning-attendance-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 600px;
+  margin: 11px 0 0;
+  color: #9a7135;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.learning-attendance-warning svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.learning-empty-state,
+.learning-error-state {
+  min-height: 260px;
+}
+
+.learning-form-modal {
+  width: min(100%, 620px);
+  max-height: calc(100dvh - 48px);
+}
+
+.learning-form {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.learning-form-content {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 19px 22px 8px;
+}
+
+.learning-type-field {
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.learning-type-field legend {
+  margin-bottom: 7px;
+  color: #50546a;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.learning-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.learning-type-option {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #e8e9ef;
+  border-radius: 9px;
+  background: #fff;
+  color: #72768a;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.learning-type-option svg {
+  width: 16px;
+  height: 16px;
+}
+
+.learning-type-option.is-selected {
+  border-color: #b8b0ed;
+  background: #f6f4ff;
+  color: #695dc5;
+}
+
+.learning-field {
+  margin-bottom: 15px;
+}
+
+.learning-session-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 13px;
+  border: 1px solid #efeff6;
+  border-radius: 10px;
+  background: #fafaff;
+}
+
+.learning-session-details div {
+  min-width: 0;
+}
+
+.learning-session-details dt {
+  margin-bottom: 4px;
+  color: #999daf;
+  font-size: 9px;
+}
+
+.learning-session-details dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #45485e;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.learning-fixed-session {
+  margin-bottom: 17px;
+}
+
+.learning-form .student-form-footer {
+  position: static;
+  flex: none;
+  margin-top: 0;
+  padding: 13px 22px 18px;
+}
+
+@media (max-width: 680px) {
+  .learning-modal-backdrop {
+    padding: 12px;
+  }
+
+  .learning-panel-header {
+    padding: 13px;
+  }
+
+  .learning-filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .learning-filter-tabs button {
+    padding: 0 5px;
+    font-size: 9px;
+  }
+
+  .learning-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .learning-search {
+    grid-column: 1 / -1;
+  }
+
+  .learning-controls .students-filter select {
+    width: 100%;
+    max-width: 100%;
+    font-size: 9px;
+  }
+
+  .learning-record-list {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .learning-record-card {
+    flex-direction: column;
+    gap: 13px;
+    padding: 13px;
+  }
+
+  .learning-record-side {
+    width: 100%;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    justify-items: start;
+    gap: 10px;
+  }
+
+  .learning-record-actions {
+    justify-self: end;
+  }
+
+  .learning-form-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .learning-form-content {
+    padding: 16px 16px 6px;
+  }
+
+  .learning-form .student-form-footer {
+    padding: 12px 16px 15px;
+  }
 
   .class-remove-member {
     grid-column: 3;

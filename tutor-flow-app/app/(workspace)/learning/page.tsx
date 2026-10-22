@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/src/components/ui/placeholder-page";
+import { LearningManager } from "@/src/features/learning/learning-manager";
 
-export const metadata: Metadata = { title: "Learning" };
+export const metadata: Metadata = { title: "Learning Records" };
 
 export default function LearningPage() {
-  return <PlaceholderPage page="learning" icon="book" />;
+  return <LearningManager />;
 }

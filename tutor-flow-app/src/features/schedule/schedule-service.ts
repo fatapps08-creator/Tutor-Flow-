@@ -3,20 +3,48 @@ import { initialScheduleSessions } from "@/src/features/schedule/mock-data";
 
 export type SessionInput = Omit<Session, "id" | "tutorId">;
 
-let sessions = [...initialScheduleSessions];
-const listeners = new Set<() => void>();
+type SessionStore = {
+  sessions: Session[];
+  listeners: Set<() => void>;
+};
 
-function notify() {
-  listeners.forEach((listener) => listener());
+type SessionStoreWindow = Window & {
+  __tutorFlowSessionStore?: SessionStore;
+};
+
+function createSessionStore(): SessionStore {
+  return {
+    sessions: [...initialScheduleSessions],
+    listeners: new Set(),
+  };
+}
+
+const serverStore = createSessionStore();
+
+function getSessionStore() {
+  if (typeof window === "undefined") {
+    return serverStore;
+  }
+
+  const clientWindow = window as SessionStoreWindow;
+  if (!clientWindow.__tutorFlowSessionStore) {
+    clientWindow.__tutorFlowSessionStore = createSessionStore();
+  }
+  return clientWindow.__tutorFlowSessionStore;
+}
+
+function notify(store: SessionStore) {
+  store.listeners.forEach((listener) => listener());
 }
 
 export function subscribeToSessions(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  const store = getSessionStore();
+  store.listeners.add(listener);
+  return () => store.listeners.delete(listener);
 }
 
 export function getSessionsSnapshot() {
-  return sessions;
+  return getSessionStore().sessions;
 }
 
 export function getSessionsServerSnapshot() {
@@ -24,18 +52,20 @@ export function getSessionsServerSnapshot() {
 }
 
 export function createSession(input: SessionInput) {
+  const store = getSessionStore();
   const session: Session = {
     ...input,
     id: `session-${crypto.randomUUID()}`,
     tutorId: "tutor-demo",
   };
-  sessions = [...sessions, session];
-  notify();
+  store.sessions = [...store.sessions, session];
+  notify(store);
   return session;
 }
 
 export function updateSession(sessionId: string, input: SessionInput) {
-  const existing = sessions.find((session) => session.id === sessionId);
+  const store = getSessionStore();
+  const existing = store.sessions.find((session) => session.id === sessionId);
   if (!existing) {
     throw new Error(`Session ${sessionId} was not found.`);
   }
@@ -45,30 +75,30 @@ export function updateSession(sessionId: string, input: SessionInput) {
     id: existing.id,
     tutorId: existing.tutorId,
   };
-  sessions = sessions.map((session) => (
+  store.sessions = store.sessions.map((session) => (
     session.id === sessionId ? updated : session
   ));
-  notify();
+  notify(store);
   return updated;
 }
 
 export function updateSessionStatus(sessionId: string, status: SessionStatus) {
-  const session = sessions.find((item) => item.id === sessionId);
+  const store = getSessionStore();
+  const session = store.sessions.find((item) => item.id === sessionId);
   if (!session) {
     throw new Error(`Session ${sessionId} was not found.`);
   }
 
-  sessions = sessions.map((item) => (
-    item.id === sessionId ? { ...item, status } : item
-  ));
-  notify();
+  const updated = { ...session, status };
+  store.sessions = store.sessions.map((item) => item.id === sessionId ? updated : item);
+  notify(store);
 }
 
 export function findSessionConflict(candidate: SessionInput, excludeId?: string) {
   const start = timeToMinutes(candidate.startTime);
   const end = timeToMinutes(candidate.endTime);
 
-  return sessions.find((session) => {
+  return getSessionStore().sessions.find((session) => {
     if (
       session.id === excludeId
       || session.date !== candidate.date
