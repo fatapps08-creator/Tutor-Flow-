@@ -22,7 +22,7 @@ type StudentRouteContext = {
 export async function GET(_request: Request, { params }: StudentRouteContext) {
   try {
     const { studentId } = await params;
-    const student = await getStudentForTutor(getStudentsTutorId(), studentId);
+    const student = await getStudentForTutor(await getStudentsTutorId(), studentId);
     if (!student) {
       throw new GoogleSheetsServiceError("INVALID_ARGUMENT", "The student was not found.", 404);
     }
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: StudentRouteContext) {
   try {
     const { studentId } = await params;
     const payload: unknown = await readStudentRequestBody(request);
-    const tutorId = getStudentsTutorId();
+    const tutorId = await getStudentsTutorId();
     if (
       payload
       && typeof payload === "object"

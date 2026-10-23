@@ -5,7 +5,9 @@ export type GoogleSheetsErrorCode =
   | "WORKSHEET_NOT_FOUND"
   | "MALFORMED_RESPONSE"
   | "INVALID_ARGUMENT"
-  | "API_ERROR";
+  | "API_ERROR"
+  | "UNAUTHORIZED"
+  | "CONFLICT";
 
 const safeMessages: Record<GoogleSheetsErrorCode, string> = {
   CONFIGURATION: "Google Sheets is not configured on the server.",
@@ -15,6 +17,8 @@ const safeMessages: Record<GoogleSheetsErrorCode, string> = {
   MALFORMED_RESPONSE: "Google Sheets returned data in an unexpected format.",
   INVALID_ARGUMENT: "The Google Sheets operation received invalid data.",
   API_ERROR: "The Google Sheets operation failed. Please try again.",
+  UNAUTHORIZED: "A tutor identity is required to access this resource.",
+  CONFLICT: "The requested record conflicts with existing data.",
 };
 
 export class GoogleSheetsServiceError extends Error {

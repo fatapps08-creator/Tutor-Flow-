@@ -3,6 +3,7 @@ import "server-only";
 import type { GoogleSheetTabName } from "@/src/types";
 import { getGoogleSheetsClient, getGoogleSpreadsheetId } from "@/src/lib/google-sheets/client";
 import { GoogleSheetsServiceError, toSafeGoogleSheetsError } from "@/src/lib/google-sheets/errors";
+import { STUDENTS_SHEET_HEADERS, validateSheetHeaders } from "@/src/lib/google-sheets/schema";
 
 export type GoogleSheetCell = string | number | boolean | null | undefined;
 export type GoogleSheetRow = Record<string, GoogleSheetCell>;
@@ -109,6 +110,7 @@ async function getHeaders(tab: GoogleSheetTabName): Promise<SheetHeaders> {
       }
       return value.trim();
     });
+    if (tab === "Students") validateSheetHeaders(headers, STUDENTS_SHEET_HEADERS);
     if (new Set(headers).size !== headers.length || !headers.includes("tutorId")) {
       throw new GoogleSheetsServiceError(
         "MALFORMED_RESPONSE",
