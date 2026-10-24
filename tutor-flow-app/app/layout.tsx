@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: "A clear, simple workspace for managing your tutoring business.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
