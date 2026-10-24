@@ -1,109 +1,16 @@
 import type { Class, ClassStudent, ClassStatus } from "@/src/types";
-import { initialClasses, initialClassStudents } from "@/src/features/classes/mock-data";
 
 export type ClassInput = Pick<Class, "className" | "subject" | "description" | "status">;
-
-let classes = [...initialClasses];
-let classStudents = [...initialClassStudents];
-let snapshot = { classes, classStudents };
-const serverSnapshot = { classes: initialClasses, classStudents: initialClassStudents };
+let snapshot = { classes: [] as Class[], classStudents: [] as ClassStudent[] };
 const listeners = new Set<() => void>();
-
-function notify() {
-  snapshot = { classes, classStudents };
-  listeners.forEach((listener) => listener());
-}
-
-function createId(prefix: string) {
-  return `${prefix}-${crypto.randomUUID()}`;
-}
-
-export function subscribeToClasses(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function getClassesSnapshot() {
-  return snapshot;
-}
-
-export function getClassesServerSnapshot() {
-  return serverSnapshot;
-}
-
-export function createClass(input: ClassInput) {
-  const record: Class = {
-    ...input,
-    id: createId("class"),
-    tutorId: "tutor-demo",
-    createdAt: new Date().toISOString(),
-  };
-  classes = [record, ...classes];
-  notify();
-  return record;
-}
-
-export function updateClass(classId: string, input: ClassInput) {
-  const existing = classes.find((item) => item.id === classId);
-  if (!existing) throw new Error(`Class ${classId} was not found.`);
-
-  const updated = { ...existing, ...input };
-  classes = classes.map((item) => (item.id === classId ? updated : item));
-  notify();
-  return updated;
-}
-
-export function updateClassStatus(classId: string, status: ClassStatus) {
-  const existing = classes.find((item) => item.id === classId);
-  if (!existing) throw new Error(`Class ${classId} was not found.`);
-
-  classes = classes.map((item) => (item.id === classId ? { ...item, status } : item));
-  notify();
-}
-
-export function addStudentToClass(classId: string, studentId: string) {
-  const activeMembership = classStudents.find(
-    (membership) => (
-      membership.classId === classId
-      && membership.studentId === studentId
-      && membership.status === "active"
-    ),
-  );
-  if (activeMembership) return "already-active" as const;
-
-  const existing = classStudents.find(
-    (membership) => membership.classId === classId && membership.studentId === studentId,
-  );
-
-  if (existing) {
-    classStudents = classStudents.map((membership) => (
-      membership.id === existing.id
-        ? { ...membership, status: "active", joinedDate: new Date().toISOString().slice(0, 10) }
-        : membership
-    ));
-    notify();
-    return "reactivated" as const;
-  }
-
-  const membership: ClassStudent = {
-    id: createId("class-student"),
-    tutorId: "tutor-demo",
-    classId,
-    studentId,
-    joinedDate: new Date().toISOString().slice(0, 10),
-    status: "active",
-  };
-  classStudents = [...classStudents, membership];
-  notify();
-  return "added" as const;
-}
-
-export function removeStudentFromClass(membershipId: string) {
-  const existing = classStudents.find((item) => item.id === membershipId);
-  if (!existing) throw new Error(`Class membership ${membershipId} was not found.`);
-
-  classStudents = classStudents.map((item) => (
-    item.id === membershipId ? { ...item, status: "inactive" } : item
-  ));
-  notify();
-}
+function notify() { listeners.forEach((listener) => listener()); }
+async function request<T>(url: string, init?: RequestInit): Promise<T> { const response = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } }); const body = await response.json(); if (!response.ok) throw new Error(body?.error?.message ?? "Request failed."); return body; }
+export function subscribeToClasses(listener: () => void) { listeners.add(listener); return () => listeners.delete(listener); }
+export function getClassesSnapshot() { return snapshot; }
+export function getClassesServerSnapshot() { return snapshot; }
+export async function loadClasses() { const [classesBody, membershipsBody] = await Promise.all([request<{ classes: Class[] }>("/api/classes"), request<{ classStudents: ClassStudent[] }>("/api/class-students")]); snapshot = { classes: classesBody.classes, classStudents: membershipsBody.classStudents }; notify(); }
+export async function createClass(input: ClassInput) { const body = await request<{ class: Class }>("/api/classes", { method: "POST", body: JSON.stringify(input) }); snapshot = { ...snapshot, classes: [body.class, ...snapshot.classes] }; notify(); return body.class; }
+export async function updateClass(id: string, input: ClassInput) { const body = await request<{ class: Class }>(`/api/classes/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(input) }); snapshot = { ...snapshot, classes: snapshot.classes.map((item) => item.id === id ? body.class : item) }; notify(); return body.class; }
+export async function updateClassStatus(id: string, status: ClassStatus) { const body = await request<{ class: Class }>(`/api/classes/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ status }) }); snapshot = { ...snapshot, classes: snapshot.classes.map((item) => item.id === id ? body.class : item) }; notify(); }
+export async function addStudentToClass(classId: string, studentId: string) { const body = await request<{ classStudent: ClassStudent }>("/api/class-students", { method: "POST", body: JSON.stringify({ classId, studentId }) }); snapshot = { ...snapshot, classStudents: [...snapshot.classStudents.filter((item) => item.id !== body.classStudent.id), body.classStudent] }; notify(); return "added" as const; }
+export async function removeStudentFromClass(id: string) { const body = await request<{ classStudent: ClassStudent }>(`/api/class-students/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ status: "inactive" }) }); snapshot = { ...snapshot, classStudents: snapshot.classStudents.map((item) => item.id === id ? body.classStudent : item) }; notify(); }

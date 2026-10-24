@@ -13,7 +13,7 @@ type ClassDetailsModalProps = {
   students: Student[];
   onClose: () => void;
   onRemove: (membership: ClassStudent, student: Student) => void;
-  onAdd: (studentIds: string[]) => AddResult[];
+  onAdd: (studentIds: string[]) => Promise<AddResult[]>;
 };
 
 function formatDate(date: string) {
@@ -49,11 +49,11 @@ export function ClassDetailsModal({
     ));
   }
 
-  function addSelectedStudents() {
+  async function addSelectedStudents() {
     setMembershipError("");
     setMembershipFeedback("");
     try {
-      const results = onAdd(selectedStudentIds);
+      const results = await onAdd(selectedStudentIds);
       const added = results.filter((result) => result === "added").length;
       const reactivated = results.filter((result) => result === "reactivated").length;
       const duplicates = results.filter((result) => result === "already-active").length;

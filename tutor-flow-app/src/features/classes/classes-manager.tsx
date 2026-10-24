@@ -10,6 +10,7 @@ import { getTranslations } from "@/src/i18n";
 import {
   addStudentToClass,
   createClass,
+  loadClasses,
   removeStudentFromClass,
   updateClass,
   updateClassStatus,
@@ -51,9 +52,8 @@ export function ClassesManager() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string }>();
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setLoading(false), 220);
-    return () => window.clearTimeout(timeout);
-  }, []);
+    loadClasses().catch(() => setFeedback({ type: "error", message: t.classSaveFailed })).finally(() => setLoading(false));
+  }, [t.classSaveFailed]);
 
   const visibleClasses = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -84,10 +84,10 @@ export function ClassesManager() {
   async function saveClass(values: ClassInput) {
     try {
       if (editing) {
-        updateClass(editing.id, values);
+        await updateClass(editing.id, values);
         setFeedback({ type: "success", message: t.classSaved });
       } else {
-        createClass(values);
+        await createClass(values);
         setFeedback({ type: "success", message: t.classCreated });
       }
       closeForm();
@@ -97,13 +97,13 @@ export function ClassesManager() {
     }
   }
 
-  function changeClassStatus(classRecord: Class) {
+  async function changeClassStatus(classRecord: Class) {
     const nextStatus: ClassStatus = classRecord.status === "active" ? "archived" : "active";
     const action = nextStatus === "archived" ? "archive" : "reactivate";
     if (!window.confirm(classConfirmationMessage(classRecord, action, t))) return;
 
     try {
-      updateClassStatus(classRecord.id, nextStatus);
+      await updateClassStatus(classRecord.id, nextStatus);
       setFeedback({
         type: "success",
         message: nextStatus === "archived" ? t.classArchived : t.classReactivated,
@@ -113,18 +113,18 @@ export function ClassesManager() {
     }
   }
 
-  function removeMembership(membership: ClassStudent, student: Student) {
+  async function removeMembership(membership: ClassStudent, student: Student) {
     if (!window.confirm(t.removeClassMembershipConfirmation.replace("{name}", student.fullName))) return;
     try {
-      removeStudentFromClass(membership.id);
+      await removeStudentFromClass(membership.id);
       setFeedback({ type: "success", message: t.studentRemovedFromClass });
     } catch {
       setFeedback({ type: "error", message: t.classMembershipSaveFailed });
     }
   }
 
-  function addMemberships(classId: string, studentIds: string[]) {
-    return studentIds.map((studentId) => addStudentToClass(classId, studentId));
+  async function addMemberships(classId: string, studentIds: string[]) {
+    return Promise.all(studentIds.map((studentId) => addStudentToClass(classId, studentId)));
   }
 
   return (
