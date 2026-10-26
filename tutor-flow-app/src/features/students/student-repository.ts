@@ -3,6 +3,7 @@ import "server-only";
 import type { Student, StudentStatus } from "@/src/types";
 import {
   appendRows,
+  deleteRow,
   findRows,
   readRows,
   updateRow,
@@ -205,6 +206,15 @@ export async function updateStudentForTutor(
     studentFieldsToRow(updated),
   );
   return updated;
+}
+
+export async function deleteStudentForTutor(tutorId: string, studentId: string) {
+  const existing = await getStudentForTutor(tutorId, studentId);
+  if (!existing) {
+    throw new GoogleSheetsServiceError("INVALID_ARGUMENT", "The student was not found.", 404);
+  }
+
+  await deleteRow(GOOGLE_SHEET_TABS.students, tutorId, studentId);
 }
 
 export async function updateStudentStatusForTutor(

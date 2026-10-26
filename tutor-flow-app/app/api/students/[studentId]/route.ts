@@ -5,6 +5,7 @@ import {
 } from "@/src/lib/google-sheets/errors";
 import { getStudentsTutorId } from "@/src/features/students/development-tutor";
 import {
+  deleteStudentForTutor,
   getStudentForTutor,
   updateStudentForTutor,
   updateStudentStatusForTutor,
@@ -29,6 +30,17 @@ export async function GET(_request: Request, { params }: StudentRouteContext) {
     return NextResponse.json({ student });
   } catch (error) {
     logStudentApiError("get", error);
+    return toGoogleSheetsErrorResponse(error);
+  }
+}
+
+export async function DELETE(_request: Request, { params }: StudentRouteContext) {
+  try {
+    const { studentId } = await params;
+    await deleteStudentForTutor(getStudentsTutorId(), studentId);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logStudentApiError("delete", error);
     return toGoogleSheetsErrorResponse(error);
   }
 }
