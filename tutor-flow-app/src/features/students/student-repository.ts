@@ -10,7 +10,7 @@ import {
 } from "@/src/lib/google-sheets/service";
 import { GOOGLE_SHEET_TABS } from "@/src/lib/google-sheets/tabs";
 import { GoogleSheetsServiceError } from "@/src/lib/google-sheets/errors";
-import { initialStudents, type StudentProfile } from "@/src/features/students/mock-data";
+import type { StudentProfile } from "@/src/features/students/mock-data";
 
 export type StudentProfileInput = Omit<StudentProfile, "student"> & {
   student: Omit<Student, "id" | "tutorId">;
@@ -122,32 +122,8 @@ function validateStudent(profile: StudentProfileInput) {
   }
 }
 
-let developmentSeedPromise: Promise<GoogleSheetRow[]> | undefined;
-
-async function seedDevelopmentStudents(tutorId: string) {
-  const existingRows = await readRows(GOOGLE_SHEET_TABS.students, tutorId);
-  if (existingRows.length > 0) return existingRows;
-
-  if (developmentSeedPromise) return developmentSeedPromise;
-  developmentSeedPromise = (async () => {
-    const latestRows = await readRows(GOOGLE_SHEET_TABS.students, tutorId);
-    if (latestRows.length > 0) return latestRows;
-    await appendRows(
-      GOOGLE_SHEET_TABS.students,
-      tutorId,
-      initialStudents.map((profile) => studentToRow(profile, tutorId)),
-    );
-    return readRows(GOOGLE_SHEET_TABS.students, tutorId);
-  })();
-  try {
-    return await developmentSeedPromise;
-  } finally {
-    developmentSeedPromise = undefined;
-  }
-}
-
 export async function getStudentsForTutor(tutorId: string) {
-  const rows = await seedDevelopmentStudents(tutorId);
+  const rows = await readRows(GOOGLE_SHEET_TABS.students, tutorId);
   const profiles = rows.map(rowToStudent);
   const studentIds = new Set<string>();
   for (const { student } of profiles) {
