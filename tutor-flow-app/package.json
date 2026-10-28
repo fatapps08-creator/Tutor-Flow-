@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:b2.1": "node --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test src/lib/google-apps-script/security.test.ts"
   },
   "dependencies": {
     "next": "16.4.2",
+    "openid-client": "^6.8.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1"

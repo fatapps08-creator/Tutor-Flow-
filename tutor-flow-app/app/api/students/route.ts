@@ -3,7 +3,7 @@ import {
   GoogleSheetsServiceError,
   toGoogleSheetsErrorResponse,
 } from "@/src/lib/google-sheets/errors";
-import { getStudentsTutorId } from "@/src/features/students/development-tutor";
+import { getCoreApiTutorId } from "@/src/features/students/development-tutor";
 import {
   createStudentForTutor,
   getStudentsForTutor,
@@ -15,7 +15,7 @@ import {
 
 export async function GET() {
   try {
-    const tutorId = getStudentsTutorId();
+    const tutorId = await getCoreApiTutorId();
     const students = await getStudentsForTutor(tutorId);
     return NextResponse.json({ students });
   } catch (error) {
@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const input = parseStudentInput(await readStudentRequestBody(request));
-    const student = await createStudentForTutor(getStudentsTutorId(), input);
+    const student = await createStudentForTutor(await getCoreApiTutorId(), input);
     return NextResponse.json({ student }, { status: 201 });
   } catch (error) {
     logStudentApiError("create", error);

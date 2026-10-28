@@ -3,7 +3,7 @@ import {
   GoogleSheetsServiceError,
   toGoogleSheetsErrorResponse,
 } from "@/src/lib/google-sheets/errors";
-import { getStudentsTutorId } from "@/src/features/students/development-tutor";
+import { getCoreApiTutorId } from "@/src/features/students/development-tutor";
 import {
   deleteStudentForTutor,
   getStudentForTutor,
@@ -23,7 +23,7 @@ type StudentRouteContext = {
 export async function GET(_request: Request, { params }: StudentRouteContext) {
   try {
     const { studentId } = await params;
-    const student = await getStudentForTutor(getStudentsTutorId(), studentId);
+    const student = await getStudentForTutor(await getCoreApiTutorId(), studentId);
     if (!student) {
       throw new GoogleSheetsServiceError("INVALID_ARGUMENT", "The student was not found.", 404);
     }
@@ -37,7 +37,7 @@ export async function GET(_request: Request, { params }: StudentRouteContext) {
 export async function DELETE(_request: Request, { params }: StudentRouteContext) {
   try {
     const { studentId } = await params;
-    await deleteStudentForTutor(getStudentsTutorId(), studentId);
+    await deleteStudentForTutor(await getCoreApiTutorId(), studentId);
     return NextResponse.json({ success: true });
   } catch (error) {
     logStudentApiError("delete", error);
@@ -49,7 +49,7 @@ export async function PATCH(request: Request, { params }: StudentRouteContext) {
   try {
     const { studentId } = await params;
     const payload: unknown = await readStudentRequestBody(request);
-    const tutorId = getStudentsTutorId();
+    const tutorId = await getCoreApiTutorId();
     if (
       payload
       && typeof payload === "object"

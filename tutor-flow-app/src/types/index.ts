@@ -32,6 +32,7 @@ export type GoogleSheetTabName =
 
 export interface Tutor {
   id: string;
+  centerId: string;
   name: string;
   email: string;
   businessName?: string;

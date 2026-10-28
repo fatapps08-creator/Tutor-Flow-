@@ -5,7 +5,14 @@ export type GoogleSheetsErrorCode =
   | "WORKSHEET_NOT_FOUND"
   | "MALFORMED_RESPONSE"
   | "INVALID_ARGUMENT"
-  | "API_ERROR";
+  | "API_ERROR"
+  | "APPS_SCRIPT_HMAC_SECRET_MISSING"
+  | "APPS_SCRIPT_API_KEY_MISSING"
+  | "APPS_SCRIPT_ASSERTION_INVALID"
+  | "APPS_SCRIPT_REQUEST_BODY_INVALID"
+  | "APPS_SCRIPT_REQUEST_TARGET_INVALID"
+  | "APPS_SCRIPT_CREDENTIALS_MUST_DIFFER"
+  | "APPS_SCRIPT_CENTER_ID_MISSING";
 
 const safeMessages: Record<GoogleSheetsErrorCode, string> = {
   CONFIGURATION: "Google Sheets is not configured on the server.",
@@ -15,6 +22,13 @@ const safeMessages: Record<GoogleSheetsErrorCode, string> = {
   MALFORMED_RESPONSE: "Google Sheets returned data in an unexpected format.",
   INVALID_ARGUMENT: "The Google Sheets operation received invalid data.",
   API_ERROR: "The Google Sheets operation failed. Please try again.",
+  APPS_SCRIPT_HMAC_SECRET_MISSING: "Apps Script request signing is not configured on the server.",
+  APPS_SCRIPT_API_KEY_MISSING: "Apps Script authentication is not configured on the server.",
+  APPS_SCRIPT_ASSERTION_INVALID: "The Apps Script request context is invalid.",
+  APPS_SCRIPT_REQUEST_BODY_INVALID: "The Apps Script request body is invalid.",
+  APPS_SCRIPT_REQUEST_TARGET_INVALID: "The Apps Script request target is invalid.",
+  APPS_SCRIPT_CREDENTIALS_MUST_DIFFER: "Apps Script credentials must be configured separately.",
+  APPS_SCRIPT_CENTER_ID_MISSING: "Apps Script center scope is not configured on the server.",
 };
 
 export class GoogleSheetsServiceError extends Error {
