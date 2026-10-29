@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GoogleSheetsServiceError } from "@/src/lib/google-sheets/errors";
 import type { CenterMembershipRole } from "@/src/features/authorization/types";
 import {
   requireTenantContext,
@@ -13,9 +14,9 @@ const centerMembershipRoles = new Set<CenterMembershipRole>([
   "STAFF",
 ]);
 
-export class RoleAuthorizationError extends Error {
+export class RoleAuthorizationError extends GoogleSheetsServiceError {
   constructor() {
-    super("The active tenant role is not authorized for this operation.");
+    super("AUTHORIZATION", undefined, 403);
     this.name = "RoleAuthorizationError";
   }
 }

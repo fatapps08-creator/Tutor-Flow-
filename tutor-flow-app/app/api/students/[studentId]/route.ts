@@ -4,6 +4,8 @@ import {
   toGoogleSheetsErrorResponse,
 } from "@/src/lib/google-sheets/errors";
 import { getCoreApiTutorId } from "@/src/features/students/development-tutor";
+import { isDevelopmentAuthBypassEnabled } from "@/src/features/auth/config";
+import { requireRole } from "@/src/features/authorization/role-authorization";
 import {
   deleteStudentForTutor,
   getStudentForTutor,
@@ -22,6 +24,9 @@ type StudentRouteContext = {
 
 export async function GET(_request: Request, { params }: StudentRouteContext) {
   try {
+    if (!isDevelopmentAuthBypassEnabled()) {
+      await requireRole("OWNER", "ADMIN", "TUTOR", "STAFF");
+    }
     const { studentId } = await params;
     const student = await getStudentForTutor(await getCoreApiTutorId(), studentId);
     if (!student) {
@@ -36,6 +41,9 @@ export async function GET(_request: Request, { params }: StudentRouteContext) {
 
 export async function DELETE(_request: Request, { params }: StudentRouteContext) {
   try {
+    if (!isDevelopmentAuthBypassEnabled()) {
+      await requireRole("OWNER", "ADMIN", "TUTOR", "STAFF");
+    }
     const { studentId } = await params;
     await deleteStudentForTutor(await getCoreApiTutorId(), studentId);
     return NextResponse.json({ success: true });
@@ -47,6 +55,9 @@ export async function DELETE(_request: Request, { params }: StudentRouteContext)
 
 export async function PATCH(request: Request, { params }: StudentRouteContext) {
   try {
+    if (!isDevelopmentAuthBypassEnabled()) {
+      await requireRole("OWNER", "ADMIN", "TUTOR", "STAFF");
+    }
     const { studentId } = await params;
     const payload: unknown = await readStudentRequestBody(request);
     const tutorId = await getCoreApiTutorId();

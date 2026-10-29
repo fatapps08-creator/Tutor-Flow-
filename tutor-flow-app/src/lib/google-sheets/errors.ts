@@ -1,6 +1,7 @@
 export type GoogleSheetsErrorCode =
   | "CONFIGURATION"
   | "AUTHENTICATION"
+  | "AUTHORIZATION"
   | "SPREADSHEET_NOT_FOUND"
   | "WORKSHEET_NOT_FOUND"
   | "MALFORMED_RESPONSE"
@@ -17,6 +18,7 @@ export type GoogleSheetsErrorCode =
 const safeMessages: Record<GoogleSheetsErrorCode, string> = {
   CONFIGURATION: "Google Sheets is not configured on the server.",
   AUTHENTICATION: "Google Sheets access was denied. Check the service account permissions.",
+  AUTHORIZATION: "The active tenant role is not authorized for this operation.",
   SPREADSHEET_NOT_FOUND: "The configured Google spreadsheet could not be found.",
   WORKSHEET_NOT_FOUND: "The requested worksheet does not exist in the configured spreadsheet.",
   MALFORMED_RESPONSE: "Google Sheets returned data in an unexpected format.",
