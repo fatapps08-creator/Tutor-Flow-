@@ -17,7 +17,7 @@ export type CurrentUser =
       email: string;
       name: string;
       status: UserStatus;
-      authMethod: "google";
+      authMethod: "supabase";
     }
   | {
       userId: "dev:tutor-demo";

@@ -8,7 +8,7 @@ type LoginPageProps = {
 };
 
 const errorMessages: Record<string, string> = {
-  "not-authorized": "This Google account is not authorized to use Tutor Flow.",
+  "not-authorized": "This account is not authorized to use Tutor Flow.",
   "sign-in-failed": "We could not complete sign-in. Please try again.",
   unavailable: "Sign-in is temporarily unavailable. Please try again later.",
 };
@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <p className="page-eyebrow">Tutor Flow</p>
         <h1>Sign in</h1>
         <p className="page-description">
-          Use your own Google Account to continue.
+          Sign in with your Tutor Flow email and password.
         </p>
       </header>
 
@@ -39,9 +39,32 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </Link>
         </p>
       ) : (
-        <a className="student-button student-button-primary" href="/api/auth/google">
-          Continue with Google
-        </a>
+        <form action="/api/auth/login" method="post" style={{ display: "grid", gap: 16 }}>
+          <label>
+            Email
+            <input
+              autoComplete="email"
+              name="email"
+              required
+              style={{ display: "block", width: "100%" }}
+              type="email"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              autoComplete="current-password"
+              minLength={8}
+              name="password"
+              required
+              style={{ display: "block", width: "100%" }}
+              type="password"
+            />
+          </label>
+          <button className="student-button student-button-primary" type="submit">
+            Sign in
+          </button>
+        </form>
       )}
     </main>
   );

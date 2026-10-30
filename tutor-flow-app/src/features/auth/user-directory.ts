@@ -4,18 +4,18 @@ import { AuthConfigurationError } from "@/src/features/auth/config";
 import type { TutorFlowUser } from "@/src/features/auth/types";
 
 export interface UserDirectory {
-  findByGoogleSubject(googleSubject: string): Promise<TutorFlowUser | null>;
+  findBySupabaseUserId(supabaseUserId: string): Promise<TutorFlowUser | null>;
 }
 
 const denyAllUserDirectory: UserDirectory = {
-  async findByGoogleSubject() {
+  async findBySupabaseUserId() {
     return null;
   },
 };
 
 function getDevelopmentUserDirectory(): UserDirectory {
-  const googleSubject = process.env.TUTOR_FLOW_DEV_USER_GOOGLE_SUB?.trim();
-  if (!googleSubject) return denyAllUserDirectory;
+  const supabaseUserId = process.env.TUTOR_FLOW_DEV_USER_SUPABASE_ID?.trim();
+  if (!supabaseUserId) return denyAllUserDirectory;
 
   const userId = process.env.TUTOR_FLOW_DEV_USER_ID?.trim();
   const email = process.env.TUTOR_FLOW_DEV_USER_EMAIL?.trim();
@@ -33,7 +33,7 @@ function getDevelopmentUserDirectory(): UserDirectory {
   const timestamp = new Date().toISOString();
   const user: TutorFlowUser = {
     userId,
-    googleSubject,
+    googleSubject: supabaseUserId,
     email,
     name,
     status,
@@ -42,8 +42,8 @@ function getDevelopmentUserDirectory(): UserDirectory {
   };
 
   return {
-    async findByGoogleSubject(subject) {
-      return subject === user.googleSubject ? user : null;
+    async findBySupabaseUserId(id) {
+      return id === user.googleSubject ? user : null;
     },
   };
 }
@@ -98,15 +98,15 @@ function getProductionUserDirectory(): UserDirectory {
     };
   });
 
-  const subjects = new Set<string>();
+  const supabaseUserIds = new Set<string>();
   for (const user of users) {
-    if (subjects.has(user.googleSubject)) throw new AuthConfigurationError();
-    subjects.add(user.googleSubject);
+    if (supabaseUserIds.has(user.googleSubject)) throw new AuthConfigurationError();
+    supabaseUserIds.add(user.googleSubject);
   }
 
   return {
-    async findByGoogleSubject(subject) {
-      return users.find((user) => user.googleSubject === subject) ?? null;
+    async findBySupabaseUserId(id) {
+      return users.find((user) => user.googleSubject === id) ?? null;
     },
   };
 }
@@ -117,7 +117,7 @@ export function getUserDirectory(): UserDirectory {
     : getProductionUserDirectory();
 }
 
-export async function findProvisionedUserByGoogleSubject(googleSubject: string) {
-  if (!googleSubject.trim()) return null;
-  return getUserDirectory().findByGoogleSubject(googleSubject);
+export async function findProvisionedUserBySupabaseUserId(supabaseUserId: string) {
+  if (!supabaseUserId.trim()) return null;
+  return getUserDirectory().findBySupabaseUserId(supabaseUserId);
 }

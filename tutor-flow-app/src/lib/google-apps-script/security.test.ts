@@ -204,16 +204,41 @@ test("generated assertions have secure unique IDs and a maximum 60-second lifeti
   assert.notEqual(encodeSignedAssertion(first), encodeSignedAssertion(second));
 });
 
-test("security credentials are placed in their dedicated headers, not the assertion", () => {
-  const headers = buildAppsScriptSecurityHeaders(context, request);
-  assert.deepEqual(Object.keys(headers), [APPS_SCRIPT_ASSERTION_HEADER, APPS_SCRIPT_API_KEY_HEADER]);
-  assert.equal(headers[APPS_SCRIPT_API_KEY_HEADER], process.env.TUTOR_FLOW_API_KEY);
-  const encodedPayload = headers[APPS_SCRIPT_ASSERTION_HEADER].split(".")[0];
-  const assertionJson = Buffer.from(encodedPayload, "base64url").toString("utf8");
-  assert.equal(headers[APPS_SCRIPT_ASSERTION_HEADER].split(".").length, 2);
-  assert.equal(headers[APPS_SCRIPT_ASSERTION_HEADER].includes("="), false);
-  assert.equal(assertionJson.includes(process.env.TUTOR_FLOW_API_KEY!), false);
-  assert.equal(assertionJson.includes(process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET!), false);
-  assert.equal(request.bodyBytes.some((byte) => byte === 0), false);
-  assert.equal(JSON.stringify({ operation: "create" }).includes(process.env.TUTOR_FLOW_API_KEY!), false);
+test("V1 sends only the API-key header when HMAC is disabled", () => {
+  const originalSecret = process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET;
+  const originalEnabled = process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED;
+  delete process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET;
+  delete process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED;
+  try {
+    const headers = buildAppsScriptSecurityHeaders(context, request);
+    assert.deepEqual(headers, {
+      [APPS_SCRIPT_API_KEY_HEADER]: process.env.TUTOR_FLOW_API_KEY,
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET;
+    else process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET = originalSecret;
+    if (originalEnabled === undefined) delete process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED;
+    else process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED = originalEnabled;
+  }
+});
+
+test("optional HMAC signing is enabled only by explicit configuration", () => {
+  const originalEnabled = process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED;
+  process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED = "true";
+  try {
+    const headers = buildAppsScriptSecurityHeaders(context, request);
+    assert.deepEqual(Object.keys(headers), [APPS_SCRIPT_API_KEY_HEADER, APPS_SCRIPT_ASSERTION_HEADER]);
+    assert.equal(headers[APPS_SCRIPT_API_KEY_HEADER], process.env.TUTOR_FLOW_API_KEY);
+    const encodedPayload = headers[APPS_SCRIPT_ASSERTION_HEADER].split(".")[0];
+    const assertionJson = Buffer.from(encodedPayload, "base64url").toString("utf8");
+    assert.equal(headers[APPS_SCRIPT_ASSERTION_HEADER].split(".").length, 2);
+    assert.equal(headers[APPS_SCRIPT_ASSERTION_HEADER].includes("="), false);
+    assert.equal(assertionJson.includes(process.env.TUTOR_FLOW_API_KEY!), false);
+    assert.equal(assertionJson.includes(process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET!), false);
+    assert.equal(request.bodyBytes.some((byte) => byte === 0), false);
+    assert.equal(JSON.stringify({ operation: "create" }).includes(process.env.TUTOR_FLOW_API_KEY!), false);
+  } finally {
+    if (originalEnabled === undefined) delete process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED;
+    else process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED = originalEnabled;
+  }
 });

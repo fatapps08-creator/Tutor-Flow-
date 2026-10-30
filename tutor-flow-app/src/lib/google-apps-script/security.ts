@@ -187,6 +187,13 @@ export function buildAppsScriptSecurityHeaders(
   if (!apiKey) {
     throw new GoogleSheetsServiceError("APPS_SCRIPT_API_KEY_MISSING");
   }
+  const headers: Record<string, string> = {
+    [APPS_SCRIPT_API_KEY_HEADER]: apiKey,
+  };
+  if (process.env.TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED?.trim().toLowerCase() !== "true") {
+    return headers;
+  }
+
   const secret = signingSecret();
   if (secret === apiKey) {
     throw new GoogleSheetsServiceError("APPS_SCRIPT_CREDENTIALS_MUST_DIFFER");
@@ -194,7 +201,7 @@ export function buildAppsScriptSecurityHeaders(
 
   const assertion = createSignedAppsScriptAssertion(context, request);
   return {
+    ...headers,
     [APPS_SCRIPT_ASSERTION_HEADER]: encodeSignedAssertion(assertion),
-    [APPS_SCRIPT_API_KEY_HEADER]: apiKey,
   };
 }

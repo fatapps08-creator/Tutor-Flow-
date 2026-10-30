@@ -33,17 +33,39 @@ export function getSiteOrigin() {
   return url.origin;
 }
 
-export function getGoogleOAuthConfiguration() {
-  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-  if (!clientId || !clientSecret) throw new AuthConfigurationError();
+export function getSupabaseConfiguration() {
+  const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!projectUrl || !publishableKey) throw new AuthConfigurationError();
 
-  const siteOrigin = getSiteOrigin();
+  let url: URL;
+  try {
+    url = new URL(projectUrl);
+  } catch {
+    throw new AuthConfigurationError();
+  }
+
+  const localHost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (
+    (url.protocol !== "https:" && !(process.env.NODE_ENV === "development" && localHost && url.protocol === "http:"))
+    || url.username
+    || url.password
+    || (url.pathname !== "/" && url.pathname !== "")
+    || url.search
+    || url.hash
+  ) {
+    throw new AuthConfigurationError();
+  }
+
+  return { projectUrl: url.origin, publishableKey };
+}
+
+export function getSupabaseCookieOptions() {
   return {
-    clientId,
-    clientSecret,
-    siteOrigin,
-    redirectUri: new URL("/api/auth/google/callback", siteOrigin).toString(),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
   };
 }
 

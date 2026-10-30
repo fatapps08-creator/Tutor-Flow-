@@ -4,18 +4,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Server-side persistence uses the deployed Apps Script web app through `src/lib/google-apps-script/client.ts`. Route Handlers keep the tutor scope on the server and send `{ action, sheet, tutorId, record, id }` requests to Apps Script; no Google service-account credentials or Sheets API client are bundled in Next.js.
 
-Configure these server-only values in local development and the deployment provider. The API key and HMAC secret are separate credentials. Never expose either through a `NEXT_PUBLIC_` variable.
+Configure these server-only values in local development and the deployment provider. V1 requires only the API key. HMAC is optional Phase 2 hardening and must remain disabled until Apps Script supports assertion verification. Never expose these values through a `NEXT_PUBLIC_` variable.
 
 ```dotenv
 GOOGLE_APPS_SCRIPT_URL=
+TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED=false
 TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET=
 TUTOR_FLOW_API_KEY=
 TUTOR_FLOW_APPS_SCRIPT_CENTER_ID=
 ```
 
-### Phase 1C-B2.1 Next.js security transport
+### V1 API-key transport
 
-The Next.js Apps Script client now sends credentials only in `X-Tutor-Flow-Api-Key` and `X-Tutor-Flow-Assertion`. Neither credential is added to a URL, query string, or operation body. The API key is not the HMAC key. The endpoint must use HTTPS.
+By default, the Next.js Apps Script client sends only `X-Tutor-Flow-Api-Key`. The key is not added to a URL, query string, or operation body. The Apps Script URL must use HTTPS. Authentication, session, tenant, ownership, authorization, request methods, and bodies remain server-side and unchanged.
+
+### Optional Phase 2 HMAC signing
+
+The signing implementation is retained for future hardening. It is inactive unless the server-only `TUTOR_FLOW_APPS_SCRIPT_HMAC_ENABLED` setting is explicitly `true`; enabling it also requires a separate `TUTOR_FLOW_APPS_SCRIPT_HMAC_SECRET`. Do not enable it for production V1 because the current Apps Script deployment does not verify HMAC assertions.
 
 The server-only signing module receives trusted context from the authenticated server session (`userId` and Google `sub`), the server-configured `TUTOR_FLOW_APPS_SCRIPT_CENTER_ID`, and the server-side tutor scope used by the existing Apps Script operations. The center setting is a single deployment scope, not a membership lookup; it is temporary groundwork and does not implement B3 authorization. In the development auth bypass, the development user ID is used as `sub`. No browser-supplied identity or role is signed, and no role is currently asserted.
 
@@ -89,27 +94,42 @@ The fixed expected signature and bytes are hard-coded in `src/lib/google-apps-sc
 
 The Apps Script source is external and was not present in this repository. Therefore the following verification is **required externally and is not implemented or deployed here**: verify both headers, independently reproduce canonicalization and HMAC, check issuer/audience/`iat`/`exp`, compare method/request target/body hash against the received request, and reject failures with safe machine-readable errors. A small clock-skew tolerance (for example, 5 seconds) should be applied by the verifier. Replay/idempotency storage, `LockService`, tenant/resource authorization, and cross-reference checks also remain external/future work; no Apps Script deployment was verified.
 
-## Google authentication foundation
+## Supabase authentication
 
-The app uses Google's OpenID Connect Authorization Code flow through Next.js Route Handlers. Google `sub` is the stable identity key; email is profile information only. OAuth state, nonce, and PKCE protect the callback. OAuth credentials and session encryption secrets are server-only.
+The app uses Supabase Auth Email/Password through a same-origin Next.js Route Handler. Supabase verifies credentials and manages the session in `HttpOnly`, `SameSite=Lax` cookies marked `Secure` in production. A Next.js Proxy refreshes sessions; server-side authorization verifies the Supabase user with `auth.getUser()` before resolving a provisioned Tutor Flow user.
 
 Set these variables for local development and production:
 
 ```dotenv
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-AUTH_SECRET=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 TUTOR_FLOW_DEV_AUTH_BYPASS=false
 ```
 
-In Google Cloud, configure the authorized redirect URI as `${NEXT_PUBLIC_SITE_URL}/api/auth/google/callback`. Production must use an HTTPS site URL and production OAuth credentials. Generate `AUTH_SECRET` as a strong random value (for example, `openssl rand -base64 32`); never expose it or `GOOGLE_CLIENT_SECRET` through a `NEXT_PUBLIC_` variable.
+The Supabase URL and publishable key are safe for client usage. Do not configure a Supabase secret/service-role key in this application. Production URLs must use HTTPS. Sign-in requires a confirmed Supabase Email/Password account; create accounts through the trusted Supabase project administration process rather than public self-registration.
 
-Visit `/login` to start Google sign-in. The session is an encrypted, bounded-lifetime `HttpOnly`, `SameSite=Lax` cookie, marked `Secure` in production. No Google OAuth tokens are retained. The logout endpoint is `POST /api/auth/logout`.
+Visit `/login` to sign in with email and password. The logout endpoint is `POST /api/auth/logout`.
 
-No Users persistence source or Apps Script Users contract exists yet. Production therefore remains deny-all until a provisioned-user lookup is connected to that future source; Google sign-in never creates a user automatically.
+Every authenticated Supabase UUID must be explicitly mapped to an existing Tutor Flow user in the server-only User Directory. The existing `googleSubject` field is retained for compatibility with the directory/Sheets shape, but its configured value must now be the Supabase Auth user UUID. `userId`, status, email, and name continue to come from the provisioned Tutor Flow record; email is never used to bind identities. Unknown, unconfirmed, suspended, and disabled users are rejected. Configure production mappings through `TUTOR_FLOW_PROVISIONED_USERS_JSON`; do not accept these mappings from the browser.
 
-To test a provisioned Google login locally, set `TUTOR_FLOW_DEV_USER_GOOGLE_SUB`, `TUTOR_FLOW_DEV_USER_ID`, `TUTOR_FLOW_DEV_USER_EMAIL`, and `TUTOR_FLOW_DEV_USER_NAME` in the server-side `.env.local` using values obtained from a trusted source. The optional `TUTOR_FLOW_DEV_USER_STATUS` defaults to `ACTIVE` and accepts `SUSPENDED` or `DISABLED` for denial testing. The configured `sub` is the only matched identity; email is profile information, not a lookup key. This allowlist is available only with `NODE_ENV=development` and is never read in production. Do not configure this user through a browser or public API. The existing `TUTOR_FLOW_DEV_AUTH_BYPASS` remains a separate development-only `tutor-demo` shortcut.
+Each configured record retains the existing directory shape, for example:
+
+```json
+[
+  {
+    "userId": "existing-internal-user-id",
+    "googleSubject": "verified-supabase-auth-user-uuid",
+    "email": "provisioned-user@example.com",
+    "name": "Provisioned User",
+    "status": "ACTIVE"
+  }
+]
+```
+
+Set `googleSubject` only to a Supabase UUID verified by a trusted administrator; do not infer or match the binding from email.
+
+For local login tests, set `TUTOR_FLOW_DEV_USER_SUPABASE_ID`, `TUTOR_FLOW_DEV_USER_ID`, `TUTOR_FLOW_DEV_USER_EMAIL`, and `TUTOR_FLOW_DEV_USER_NAME` in server-side `.env.local` using trusted values. The configured Supabase UUID is the only matched identity; email is profile information, not a lookup key. This mapping is available only with `NODE_ENV=development` and is never read in production. `TUTOR_FLOW_DEV_AUTH_BYPASS` remains a separate development-only `tutor-demo` shortcut.
 
 The current feature APIs are not yet protected by this authentication foundation; that work belongs to a later phase.
 
@@ -119,7 +139,7 @@ The Apps Script endpoint should validate its own shared-secret or authentication
 
 ## Center authorization data foundation (Phase 1C-A)
 
-The server-side types and repository interfaces for Users, Centers, CenterMemberships, and Entitlements are defined under `src/features/authorization`. They define the future data and service boundary only: there is no production Users store, Apps Script implementation for these resources, client API, or feature authorization enforcement in this phase. The existing development-only Google-sub allowlist remains separate from these repositories; a later phase can connect `user-directory.ts` to `UserRepository.findByGoogleSubject()`.
+The server-side types and repository interfaces for Users, Centers, CenterMemberships, and Entitlements are defined under `src/features/authorization`. They define the future data and service boundary only: there is no production Users store, Apps Script implementation for these resources, client API, or feature authorization enforcement in this phase. The existing development-only identity mapping remains separate from these repositories; the User Directory resolves verified Supabase UUIDs to Tutor Flow internal user IDs.
 
 The master spreadsheet is expected to contain these tabs and exact header order:
 
@@ -163,7 +183,7 @@ The Next.js client in `src/lib/google-apps-script/client.ts` supports generic `l
 
 When the Users/Center contract is implemented, use named business operations rather than browser-accessible generic sheet operations. The conceptual operations are the repository methods above: find user by Google `sub`, get user by ID, explicitly provision user, update user status; get/create center and update status; get Tutor by ID/create Tutor; find active memberships by user, get/create membership and update role/status/Tutor link; get effective center entitlement and create an entitlement period. Entitlement history has no update operation. Next.js server handlers remain the only callers. Apps Script must validate each operation and must not accept client-supplied identity as proof of authorization.
 
-Phase 1C-B2.1 implements the Next.js signing and transport described above. The existing API key remains a separate server-to-server credential; it is not the end user's identity. Apps Script verification and deployment remain pending, so this does not complete the end-to-end B2 boundary.
+The existing API key is a server-to-server credential; it is not the end user's identity. Apps Script verification and deployment remain pending for optional Phase 2 HMAC signing, so this does not complete the end-to-end B2 boundary.
 
 For initial center context, a selected `centerId` is only a hint. The server must verify an active User, active Center, active membership, valid role, and a valid center-level `TRIAL`/`ACTIVE` entitlement whose dates include now before allowing access. Users can belong to multiple Centers, but the initial release uses one active center context at a time. The role set is intentionally limited to `OWNER`, `ADMIN`, `TUTOR`, and `STAFF`; detailed permissions remain future policy work. This policy is documented only and is not enforced across current feature APIs in Phase 1C-A.
 
