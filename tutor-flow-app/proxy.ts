@@ -18,8 +18,17 @@ const protectedPaths = [
 ];
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const isPublicAuthPath =
+    pathname === "/login" ||
+    pathname === "/api/auth" ||
+    pathname.startsWith("/api/auth/");
+  if (isPublicAuthPath) {
+    return NextResponse.next({ request });
+  }
+
   const isProtectedPath = protectedPaths.some(
-    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`),
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
   if (isProtectedPath && isDevelopmentAuthBypassEnabled()) {
     return NextResponse.next({ request });
@@ -49,7 +58,9 @@ export async function proxy(request: NextRequest) {
   });
 
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) throw error;
+  if (error && error.name !== "AuthSessionMissingError" && error.status !== 401) {
+    throw error;
+  }
 
   if (isProtectedPath && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
