@@ -3,9 +3,28 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   getSupabaseConfiguration,
   getSupabaseCookieOptions,
+  isDevelopmentAuthBypassEnabled,
 } from "@/src/features/auth/config";
 
+const protectedPaths = [
+  "/dashboard",
+  "/schedule",
+  "/students",
+  "/classes",
+  "/learning",
+  "/registration",
+  "/payments",
+  "/settings",
+];
+
 export async function proxy(request: NextRequest) {
+  const isProtectedPath = protectedPaths.some(
+    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`),
+  );
+  if (isProtectedPath && isDevelopmentAuthBypassEnabled()) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
   const { projectUrl, publishableKey } = getSupabaseConfiguration();
   const supabase = createServerClient(projectUrl, publishableKey, {
@@ -29,7 +48,13 @@ export async function proxy(request: NextRequest) {
     cookieOptions: getSupabaseCookieOptions(),
   });
 
-  await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) throw error;
+
+  if (isProtectedPath && !user) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   return response;
 }
 
