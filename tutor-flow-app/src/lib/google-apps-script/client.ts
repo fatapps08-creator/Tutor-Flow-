@@ -137,6 +137,12 @@ async function send(
     audience: appsScriptAudience(endpoint),
   });
   let response: Response;
+  console.info("[apps-script] request", {
+    method,
+    action,
+    sheet: resource,
+    tutorId: context.tutorId,
+  });
   try {
     response = await fetchWithoutForwardingCredentials(endpoint, {
       method,
@@ -149,15 +155,34 @@ async function send(
     });
   } catch (error) {
     if (error instanceof GoogleSheetsServiceError) throw error;
+    console.error("[apps-script] transport failed", {
+      method,
+      action,
+      sheet: resource,
+      tutorId: context.tutorId,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
     throw new GoogleSheetsServiceError("API_ERROR", "The Apps Script backend could not be reached.", 502);
   }
+  console.info("[apps-script] response", {
+    method,
+    action,
+    sheet: resource,
+    tutorId: context.tutorId,
+    status: response.status,
+  });
   return response;
 }
 
-function backendError(payload: AppsScriptResponse<unknown>) {
+function backendError(payload: AppsScriptResponse<unknown>, status: number) {
   const code = payload.error ?? "SERVER_ERROR";
-  const status = code === "UNAUTHORIZED" ? 502 : code === "NOT_FOUND" ? 404 : 502;
-  return new GoogleSheetsServiceError("API_ERROR", undefined, status);
+  console.error("[apps-script] backend rejected request", {
+    status,
+    error: code,
+    message: payload.message,
+  });
+  const mappedStatus = code === "UNAUTHORIZED" ? 502 : code === "NOT_FOUND" ? 404 : 502;
+  return new GoogleSheetsServiceError("API_ERROR", undefined, mappedStatus);
 }
 
 async function parse<T>(response: Response): Promise<AppsScriptResponse<T>> {
@@ -181,7 +206,7 @@ export async function listFromAppsScript<T>(sheet: AppsScriptSheet, tutorId: str
   const context = await trustedContext(tutorId);
   const response = await send(endpoint, context, "GET", "list", sheet, new Uint8Array());
   const payload = await parse<T[]>(response);
-  if (!response.ok || payload.success === false) throw backendError(payload);
+  if (!response.ok || payload.success === false) throw backendError(payload, response.status);
   if (!Array.isArray(payload.data)) throw new GoogleSheetsServiceError("MALFORMED_RESPONSE", "Apps Script returned invalid list data.", 502);
   return payload.data;
 }
@@ -214,7 +239,7 @@ async function post<T>(body: Record<string, unknown>): Promise<T> {
   const bodyBytes = new TextEncoder().encode(JSON.stringify(body));
   const response = await send(endpoint, context, "POST", action, sheet, bodyBytes);
   const payload = await parse<T>(response);
-  if (!response.ok || payload.success === false) throw backendError(payload);
+  if (!response.ok || payload.success === false) throw backendError(payload, response.status);
   if (
     body.action !== "delete"
     && (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data))

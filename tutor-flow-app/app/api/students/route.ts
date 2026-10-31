@@ -16,34 +16,38 @@ import {
 } from "@/src/features/students/student-api-validation";
 
 export async function GET() {
+  let tutorId: string | undefined;
   try {
     if (!isDevelopmentAuthBypassEnabled()) {
       await requireRole("OWNER", "ADMIN", "TUTOR", "STAFF");
     }
-    const tutorId = await getCoreApiTutorId();
+    tutorId = await getCoreApiTutorId();
     const students = await getStudentsForTutor(tutorId);
     return NextResponse.json({ students });
   } catch (error) {
-    logStudentApiError("list", error);
+    logStudentApiError("list", error, tutorId);
     return toGoogleSheetsErrorResponse(error);
   }
 }
 
 export async function POST(request: Request) {
+  let tutorId: string | undefined;
   try {
     if (!isDevelopmentAuthBypassEnabled()) {
       await requireRole("OWNER", "ADMIN", "TUTOR", "STAFF");
     }
     const input = parseStudentInput(await readStudentRequestBody(request));
-    const student = await createStudentForTutor(await getCoreApiTutorId(), input);
+    tutorId = await getCoreApiTutorId();
+    const student = await createStudentForTutor(tutorId, input);
     return NextResponse.json({ student }, { status: 201 });
   } catch (error) {
-    logStudentApiError("create", error);
+    logStudentApiError("create", error, tutorId);
     return toGoogleSheetsErrorResponse(error);
   }
 }
 
-function logStudentApiError(operation: string, error: unknown) {
+function logStudentApiError(operation: string, error: unknown, tutorId?: string) {
   const code = error instanceof GoogleSheetsServiceError ? error.code : "UNEXPECTED";
-  console.error(`[students-api] ${operation} failed`, { code });
+  const message = error instanceof Error ? error.message : "Unknown error";
+  console.error(`[students-api] ${operation} failed`, { code, message, tutorId });
 }
