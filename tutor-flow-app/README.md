@@ -16,7 +16,7 @@ TUTOR_FLOW_APPS_SCRIPT_CENTER_ID=
 
 ### V1 API-key transport
 
-By default, the Next.js Apps Script client sends only `X-Tutor-Flow-Api-Key`. The key is not added to a URL, query string, or operation body. The Apps Script URL must use HTTPS. Authentication, session, tenant, ownership, authorization, request methods, and bodies remain server-side and unchanged.
+The Apps Script deployment authenticates with the `apiKey` query parameter, so the server-only client adds the configured `TUTOR_FLOW_API_KEY` to each Apps Script request URL. It does not send the key in a header or operation body, log its value, or expose it to browser code. The Apps Script URL must use HTTPS. Authentication, session, tenant, ownership, authorization, request methods, and bodies remain server-side and unchanged.
 
 ### Optional Phase 2 HMAC signing
 

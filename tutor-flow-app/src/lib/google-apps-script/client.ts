@@ -123,7 +123,7 @@ async function fetchWithoutForwardingCredentials(
   return fetch(redirected, {
     method: "GET",
     cache: "no-store",
-    redirect: "error",
+    redirect: "follow",
   });
 }
 
@@ -144,19 +144,22 @@ async function send(
     bodyBytes,
     audience: appsScriptAudience(endpoint),
   });
+  endpoint.searchParams.set("apiKey", securityHeaders[APPS_SCRIPT_API_KEY_HEADER]);
+  const requestHeaders = { ...securityHeaders };
+  delete requestHeaders[APPS_SCRIPT_API_KEY_HEADER];
   let response: Response;
   console.info("[apps-script] request", {
     method,
     action,
     sheet: resource,
     tutorId: context.tutorId,
-    apiKeyHeaderPresent: Boolean(securityHeaders[APPS_SCRIPT_API_KEY_HEADER]),
+    apiKeyQueryParameterPresent: endpoint.searchParams.has("apiKey"),
   });
   try {
     response = await fetchWithoutForwardingCredentials(endpoint, {
       method,
       headers: {
-        ...securityHeaders,
+        ...requestHeaders,
         ...(method === "POST" ? { "Content-Type": "application/json; charset=utf-8" } : {}),
       },
       ...(method === "POST" ? { body: bodyBytes } : {}),
