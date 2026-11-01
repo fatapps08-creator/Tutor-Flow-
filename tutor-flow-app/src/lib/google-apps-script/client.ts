@@ -109,6 +109,13 @@ async function fetchWithoutForwardingCredentials(
     throw new GoogleSheetsServiceError("API_ERROR", "The Apps Script backend returned an invalid redirect.", 502);
   }
   const redirected = new URL(location, endpoint);
+  console.info("[apps-script] redirect", {
+    status: response.status,
+    hostname: redirected.hostname,
+    pathname: redirected.pathname,
+    queryParameterNames: Array.from(redirected.searchParams.keys()),
+    locationType: /^[a-z][a-z\d+.-]*:/i.test(location) ? "absolute" : "relative",
+  });
   if (redirected.protocol !== "https:" || !redirected.hostname.endsWith(".googleusercontent.com")) {
     throw new GoogleSheetsServiceError("API_ERROR", "The Apps Script backend returned an unsafe redirect.", 502);
   }
