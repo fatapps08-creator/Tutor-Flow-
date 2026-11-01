@@ -264,48 +264,21 @@ a:focus-visible {
   color: #969aab;
 }
 
-.profile-menu {
-  margin-left: auto;
-}
-
-.profile-menu summary {
-  display: flex;
-  cursor: pointer;
-  list-style: none;
-}
-
-.profile-menu summary::-webkit-details-marker {
-  display: none;
-}
-
-.profile-menu-panel {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
-  z-index: 10;
-  min-width: 128px;
-  padding: 5px;
-  border: 1px solid #eff0f5;
-  border-radius: 8px;
+.logout-button {
+  padding: 7px 10px;
+  border: 1px solid #e5e3f3;
+  border-radius: 7px;
   background: #fff;
-  box-shadow: 0 8px 24px rgb(34 37 56 / 12%);
-}
-
-.profile-menu-panel button {
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: #393b51;
+  color: #6558bf;
   cursor: pointer;
   font: inherit;
-  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
 }
 
-.profile-menu-panel button:hover,
-.profile-menu-panel button:focus-visible {
-  background: #f5f5f9;
+.logout-button:hover,
+.logout-button:focus-visible {
+  background: #f7f5ff;
 }
 
 .app-main {

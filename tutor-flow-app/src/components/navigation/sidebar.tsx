@@ -63,16 +63,9 @@ export function Sidebar() {
             <strong>Sarah</strong>
             <span>{t.independentTutor}</span>
           </span>
-          <details className="profile-menu">
-            <summary aria-label="Open account menu">
-              <Icon name="more" className="profile-more" />
-            </summary>
-            <div className="profile-menu-panel">
-              <form action="/api/auth/logout" method="post">
-                <button type="submit">Log out</button>
-              </form>
-            </div>
-          </details>
+          <form action="/api/auth/logout" method="post">
+            <button className="logout-button" type="submit">Log out</button>
+          </form>
         </div>
       </div>
     </aside>

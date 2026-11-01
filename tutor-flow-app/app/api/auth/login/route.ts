@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import type { CookieOptions } from "@supabase/ssr";
 import { getSiteOrigin } from "@/src/features/auth/config";
 import { findProvisionedUserBySupabaseUserId } from "@/src/features/auth/user-directory";
+import {
+  getTenantContextForUser,
+  TenantContextUnavailableError,
+} from "@/src/features/authorization/tenant-context";
 import { createServerSupabaseClient } from "@/src/lib/supabase/server";
 
 type PendingCookie = {
@@ -80,6 +84,20 @@ export async function POST(request: NextRequest) {
 
     return redirectWithCookies(
       new URL("/login?error=not-authorized", siteOrigin).toString(),
+      cookiesToSet,
+      headersToSet,
+    );
+  }
+
+  try {
+    getTenantContextForUser(provisionedUser);
+  } catch (error) {
+    if (!(error instanceof TenantContextUnavailableError)) throw error;
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) throw signOutError;
+
+    return redirectWithCookies(
+      new URL("/login?error=tenant-unavailable", siteOrigin).toString(),
       cookiesToSet,
       headersToSet,
     );

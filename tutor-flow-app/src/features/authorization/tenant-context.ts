@@ -1,6 +1,7 @@
 import "server-only";
 
 import { requireAuthenticatedUser } from "@/src/features/auth/session";
+import type { CurrentUser } from "@/src/features/auth/types";
 import type { Center, CenterMembership } from "@/src/features/authorization/types";
 import { isCenter, isCenterMembership } from "@/src/features/authorization/validation";
 
@@ -53,8 +54,9 @@ function provisionedTenants(): ProvisionedTenant[] {
   });
 }
 
-export async function requireTenantContext(): Promise<TenantContext> {
-  const user = await requireAuthenticatedUser();
+export function getTenantContextForUser(
+  user: Pick<CurrentUser, "userId" | "status">,
+): TenantContext {
   if (user.status !== "ACTIVE") throw new TenantContextUnavailableError();
 
   const memberships = provisionedTenants().filter(
@@ -72,4 +74,8 @@ export async function requireTenantContext(): Promise<TenantContext> {
     role: membership.role,
     tutorId: membership.tutorId,
   };
+}
+
+export async function requireTenantContext(): Promise<TenantContext> {
+  return getTenantContextForUser(await requireAuthenticatedUser());
 }

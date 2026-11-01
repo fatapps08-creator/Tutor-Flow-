@@ -62,8 +62,14 @@ export async function proxy(request: NextRequest) {
     throw error;
   }
 
+  if (isProtectedPath) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+  }
+
   if (isProtectedPath && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
+    redirectResponse.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+    return redirectResponse;
   }
 
   return response;

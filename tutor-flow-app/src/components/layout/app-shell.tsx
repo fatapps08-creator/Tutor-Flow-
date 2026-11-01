@@ -18,7 +18,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="mobile-user">
             <span className="mobile-date-label">{t.dashboardOverview}</span>
-            <span className="avatar" aria-label="Sarah">S</span>
+            <form action="/api/auth/logout" method="post">
+              <button className="logout-button" type="submit">Log out</button>
+            </form>
           </div>
         </header>
         <main className="main-content">{children}</main>

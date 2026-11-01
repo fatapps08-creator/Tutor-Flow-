@@ -11,6 +11,7 @@ const errorMessages: Record<string, string> = {
   "not-authorized": "This account is not authorized to use Tutor Flow.",
   "sign-in-failed": "We could not complete sign-in. Please try again.",
   unavailable: "Sign-in is temporarily unavailable. Please try again later.",
+  "tenant-unavailable": "Your account does not have active center access. Contact your Tutor Flow administrator.",
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
