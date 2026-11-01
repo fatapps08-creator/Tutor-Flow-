@@ -5,6 +5,7 @@ import { isDevelopmentAuthBypassEnabled } from "@/src/features/auth/config";
 import { requireTenantContext } from "@/src/features/authorization/tenant-context";
 import { GoogleSheetsServiceError } from "@/src/lib/google-sheets/errors";
 import {
+  APPS_SCRIPT_API_KEY_HEADER,
   buildAppsScriptSecurityHeaders,
   type TrustedAppsScriptContext,
 } from "@/src/lib/google-apps-script/security";
@@ -142,6 +143,7 @@ async function send(
     action,
     sheet: resource,
     tutorId: context.tutorId,
+    apiKeyHeaderPresent: Boolean(securityHeaders[APPS_SCRIPT_API_KEY_HEADER]),
   });
   try {
     response = await fetchWithoutForwardingCredentials(endpoint, {
@@ -187,9 +189,17 @@ function backendError(payload: AppsScriptResponse<unknown>, status: number) {
 
 async function parse<T>(response: Response): Promise<AppsScriptResponse<T>> {
   let payload: unknown;
+  let responseText = "";
   try {
-    payload = await response.json();
+    responseText = await response.text();
+    payload = JSON.parse(responseText);
   } catch {
+    console.error("[apps-script] invalid JSON response", {
+      status: response.status,
+      contentType: response.headers.get("content-type"),
+      bodyLength: responseText.length,
+      looksLikeHtml: /^\s*(?:<!doctype html|<html\b)/i.test(responseText),
+    });
     throw new GoogleSheetsServiceError("MALFORMED_RESPONSE", "Apps Script returned invalid JSON.", 502);
   }
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
