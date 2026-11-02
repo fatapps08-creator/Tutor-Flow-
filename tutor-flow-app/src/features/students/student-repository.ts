@@ -58,10 +58,14 @@ export function studentToRow(profile: StudentProfile, tutorId: string): GoogleSh
 }
 
 export function rowToStudent(row: GoogleSheetRow): StudentProfile {
-  const rawSubjects = stringValue(row, "subjects");
+  const rawSubjects = row.subjects;
   let subjects: unknown;
   try {
-    subjects = JSON.parse(rawSubjects);
+    subjects = Array.isArray(rawSubjects)
+      ? rawSubjects
+      : typeof rawSubjects === "string"
+        ? JSON.parse(rawSubjects)
+        : undefined;
   } catch {
     throw new GoogleSheetsServiceError(
       "MALFORMED_RESPONSE",
