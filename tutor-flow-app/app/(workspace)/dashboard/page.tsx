@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from "next";
 import { DashboardContent } from "@/src/features/dashboard/dashboard-content";
 
