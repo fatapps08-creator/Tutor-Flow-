@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tutor Flow",
-    template: "%s | Tutor Flow",
+    default: "Tutor Flow | Fadigihub",
+    template: "%s | Fadigihub",
   },
-  description: "A clear, simple workspace for managing your tutoring business.",
+  description: "Tutor Flow workspace and Fadigihub admin panel for tutoring businesses.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
